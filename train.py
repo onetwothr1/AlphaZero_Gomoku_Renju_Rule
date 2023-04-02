@@ -55,7 +55,7 @@ def train(model, dataset, model_save_dir, device, num_epochs, lr, batch_size, bo
 
             optimizer.zero_grad()
             policy_predict = model(board_tensor)
-            reward_encoded = encode_reward(action, reward, board_size)
+            reward_encoded = encode_reward(action, reward, board_size).to(device)
             loss = criterion(policy_predict, reward_encoded)
             loss.backward()
             optimizer.step()
