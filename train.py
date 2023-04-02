@@ -29,18 +29,22 @@ def save_graph_img(_list, save_path, model_name):
     plt.ylabel('Loss')
     plt.savefig(save_path + '/%s loss.png' %(model_name))
 
+
 def train(model, dataset, model_save_dir, device, num_epochs, lr, batch_size, board_size, early_stop):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode=min, 
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', 
                                                      factor=0.5, patience=3)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    model_epoch = model.name.split(' ')[-1]
+    model_epoch = int(model.name.split(' ')[-1].split('.')[0])
 
-    losses = []
-    running_loss = 0.0
-    best_loss = 1e10
-    early_stop_count = 0
+    print('num data:', len(dataset))
+    print('num batch:', len(dataloader))
+
+    # losses = []
+    # running_loss = 0.0
+    # best_loss = 1e10
+    # early_stop_count = 0
     for epoch in range(1, num_epochs+1):
         print('--------------------------------')
         print("Epoch %s" %(epoch))
@@ -55,27 +59,28 @@ def train(model, dataset, model_save_dir, device, num_epochs, lr, batch_size, bo
             loss = criterion(policy_predict, reward_encoded)
             loss.backward()
             optimizer.step()
+            # running_loss += loss.item()
+        scheduler.step(loss)
 
-            running_loss += loss.item()
-        scheduler.step()
+        # avg_loss = running_loss / len(dataloader)
+        # losses.append(avg_loss)
+        # running_loss = 0.0
+        # print('average loss %.4f' %(avg_loss))
+    #     if avg_loss < best_loss:
+    #         best_loss = avg_loss
+    #         early_stop_count = 0
+    #         torch.save(model.state_dict(), model_save_dir + '/model %d.pt' %(epoch + model_epoch))
+    #     else:
+    #         early_stop_count += 1
+    #         if early_stop_count >= early_stop:
+    #             print('training early stopped.')
+    #             break
 
-        avg_loss = running_loss / len(dataloader)
-        losses.append(avg_loss)
-        running_loss = 0.0
-        print('average loss %.4f' %(avg_loss))
-        if avg_loss < best_loss:
-            best_loss = avg_loss
-            early_stop_count = 0
-            torch.save(model.state_dict(), model_save_dir + '/model %d.pt' %(epoch + model_epoch))
-        else:
-            early_stop_count += 1
-            if early_stop_count >= early_stop:
-                print('training early stopped.')
-                break
+    torch.save(model.state_dict(), model_save_dir + '/model %d.pt' %(epoch + model_epoch))
 
-    with open(model_save_dir + '/model %d loss.pickle' %(epoch + model_epoch), 'wb') as f:
-        pickle.dump(losses, f)
-    save_graph_img(losses, model_save_dir, 'model %d' %(epoch + model_epoch))
+    # with open(model_save_dir + '/model %d loss.pickle' %(epoch + model_epoch), 'wb') as f:
+    #     pickle.dump(losses, f)
+    # save_graph_img(losses, model_save_dir, 'model %d' %(epoch + model_epoch))
     print('training successfully ended.')
 
 
@@ -83,7 +88,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model-load-path')
     parser.add_argument('--data-path')
-    parser.add_argument('--model-save-dir')
+    parser.add_argument('--model-save-dir', type=str, default='models')
     parser.add_argument('--board-size', '-b', type=int, default=9)
     parser.add_argument('--num-epochs', '-n', type=int, default=100)
     parser.add_argument('--learning-rate', '-lr', type=float, default=0.001)
@@ -98,7 +103,6 @@ def main():
 
     dataset = ExperienceCollector()
     dataset.load_experience(args.data_path)
-    print('num data:', len(dataset))
 
     train(model = model,
           dataset = dataset,
