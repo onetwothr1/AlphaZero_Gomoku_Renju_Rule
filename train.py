@@ -33,8 +33,8 @@ def save_graph_img(_list, save_path, model_name):
 def train(model, dataset, model_save_dir, device, num_epochs, lr, batch_size, board_size, early_stop):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', 
-                                                     factor=0.5, patience=3)
+    # scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', 
+                                                    #  factor=0.5, patience=3)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     model_epoch = int(model.name.split(' ')[-1].split('.')[0])
 
@@ -60,7 +60,7 @@ def train(model, dataset, model_save_dir, device, num_epochs, lr, batch_size, bo
             loss.backward()
             optimizer.step()
             # running_loss += loss.item()
-        scheduler.step(loss)
+        # scheduler.step(loss)
 
         # avg_loss = running_loss / len(dataloader)
         # losses.append(avg_loss)
