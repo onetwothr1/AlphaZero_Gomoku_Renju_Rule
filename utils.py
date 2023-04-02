@@ -1,0 +1,86 @@
+import platform
+import subprocess
+from player import Player
+from board import Point, GameState
+
+COLS = 'ABCDEFGHJKLMNOPQRST'
+
+
+def print_move(player, move):
+    if player is None or move is None:
+        return 0
+    move_str = '%s%d' % (COLS[move.col], move.row)
+    print('%s %s' % (player, move_str))
+
+def print_board(board):
+    for row in range(board.board_size-1, -1, -1):
+        line = []
+        for col in range(board.board_size):
+            stone = board.get(Point(row=row, col=col))
+            if stone==0:
+                line.append(' ')
+            elif stone==Player.black:
+                line.append('○')
+            elif stone==Player.white:
+                line.append('●')
+        print(' %d %s' % (row, ' '.join(line)))
+    print('   ' + ' '.join(COLS[:board.board_size]))
+
+def handle_input(_input, game: GameState, board_size):
+    point = point_from_coords(_input.strip(), board_size)
+    if point is None:
+        return None
+    if not game.board.is_empty(point):
+        print_not_empty()
+        return None
+    if not game.is_valid_move(point):
+        print_invalid_move()
+        return None
+    return point
+
+def point_from_coords(coords, board_size):
+    try:
+        col = COLS.index(str.upper(coords[0]))
+        row = int(coords[1:])
+        if not (0 <= col < board_size and 0 <= row < board_size):
+            print_out_of_board()
+            return None
+        return Point(row=row, col=col)
+    except:
+        print_wrong_input()
+        return None
+
+def coords_from_point(point):
+    return '%s%d' % (
+        COLS[point.col],
+        point.row
+    )
+
+
+def print_winner(winner, win_by_forcing_forbidden_move=False):
+    if win_by_forcing_forbidden_move:
+        print('\n%s wins by forcing %s to do forbidden move!' %(winner, winner.other))
+    else:
+        print('\n%s wins!' %(winner))
+
+def print_board_is_full():
+    print("\nboard is full. end game.")
+
+def print_wrong_input():
+    print("wrong input. try again")
+
+def print_out_of_board():
+    print("point is out of board. type a proper point again.")
+
+def print_not_empty():
+    print('the point is already occupied. type another point.')
+
+def print_invalid_move():
+    print("that move is forbidden. try another move.")
+
+def clear_screen():
+    # see https://stackoverflow.com/a/23075152/323316
+    if platform.system() == "Windows":
+        subprocess.Popen("cls", shell=True).communicate()
+    else:  # Linux and Mac
+        print(chr(27) + "[2J")
