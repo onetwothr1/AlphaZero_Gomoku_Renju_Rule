@@ -1,4 +1,6 @@
-import agent
+from agent import *
+from net import *
+from encoder import Encoder
 from player import Player
 from board import GameState
 from utils import *
@@ -6,12 +8,18 @@ from utils import *
 def main():
     board_size = 9
     game = GameState.new_game(board_size)
+    model = AlphaZeroNet(board_size)
+    model.load_state_dict(torch.load('models/alphazero 0.pt'))
+    encoder = Encoder(board_size)
+    bot = AlphaZeroAgent(model, encoder, rounds_per_move=3, 
+                        c=0.6, is_self_play=True, 
+                        dirichlet_noise_intensity=0.2, 
+                        dirichlet_alpha=5, verbose=1)
     move = None
     print_board(game.board)
-    bot = agent.RandomBot()
 
     while not game.is_over():
-        clear_screen()
+        # clear_screen()
         print('----------------------------')
         print_move(game.prev_player(), move)
         print_board(game.board)

@@ -142,11 +142,3 @@ class Renju_Rule(object):
         elif self.double_three(x, y, stone) or self.double_four(x, y, stone): return True
         
         return False
-
-    def get_forbidden_points(self, stone):
-        coords = []
-        for y in range(len(self.board)):
-            for x in range(len(self.board[0])):
-                if self.board[y][x] : continue
-                if self.forbidden_point(x, y, stone) : coords.append((x, y))
-        return [(y,x) for x,y in coords]

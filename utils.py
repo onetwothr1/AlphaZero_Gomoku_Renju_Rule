@@ -30,7 +30,7 @@ def handle_input(_input, game: GameState, board_size):
     point = point_from_coords(_input.strip(), board_size)
     if point is None:
         return None
-    if not game.board.is_empty(point):
+    if not game.is_empty(point):
         print_not_empty()
         return None
     if not game.is_valid_move(point):
@@ -55,7 +55,6 @@ def coords_from_point(point):
         COLS[point.col],
         point.row
     )
-
 
 def print_winner(winner, win_by_forcing_forbidden_move=False):
     if win_by_forcing_forbidden_move:

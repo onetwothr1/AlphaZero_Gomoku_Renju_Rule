@@ -1,23 +1,39 @@
-import agent
+from agent import *
+from net import *
+from encoder import Encoder
 from player import Player
 from board import GameState
 from utils import *
-import time
+import torch
 
 
 def main():
     board_size = 9
     game = GameState.new_game(board_size)
+    model = AlphaZeroNet(board_size)
+    model.load_state_dict(torch.load('models/alphazero 0.pt'))
+    encoder = Encoder(board_size)
+
+    rounds_per_move = 1
+    c = 0.6
+    noise_intensity = 0.2
+    alpha = 5
+    verbose = 1
     bots = {
-        Player.black: agent.randombot.RandomBot(),
-        Player.white: agent.randombot.RandomBot(),
+        Player.black: AlphaZeroAgent(model, encoder, rounds_per_move=rounds_per_move, 
+                                     c=c, is_self_play=True, 
+                                     dirichlet_noise_intensity=noise_intensity, 
+                                     dirichlet_alpha=alpha, verbose=verbose),
+        Player.white: AlphaZeroAgent(model, encoder, rounds_per_move=rounds_per_move, 
+                                     c=c, is_self_play=True, 
+                                     dirichlet_noise_intensity=noise_intensity, 
+                                     dirichlet_alpha=alpha, verbose=verbose),
     }
     bot_move = None
     print_board(game.board)
 
     while not game.is_over():
-        # time.sleep(0.1)
-        clear_screen()
+        # clear_screen()
         print('----------------------------')
         print_move(game.prev_player(), bot_move)
         print_board(game.board)
@@ -25,7 +41,7 @@ def main():
         bot_move = bots[game.next_player].select_move(game)
         game = game.apply_move(bot_move)
 
-    clear_screen()
+    # clear_screen()
     print('----------------------------')
     print_move(game.prev_player(), bot_move)
     print_board(game.board)

@@ -8,7 +8,7 @@ from utils import print_board, print_move
 # end::generate_mcts_imports[]
 
 
-def encode_point(point, board_size):  # <1>
+def encode_move(point, board_size):  # <1>
     return board_size * point.row + point.col
 
 # tag::generate_mcts[]
@@ -27,7 +27,7 @@ def generate_game(board_size, rounds, max_moves, temperature):
             boards.append(game.board)  # <6>
 
             move_one_hot = np.zeros(board_size * board_size)
-            move_one_hot[encode_point(move, board_size)] = 1
+            move_one_hot[encode_move(move, board_size)] = 1
             moves.append(move_one_hot)  # <7>
 
         print_move(game.next_player, move)
