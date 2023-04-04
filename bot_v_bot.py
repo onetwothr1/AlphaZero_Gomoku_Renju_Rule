@@ -14,11 +14,11 @@ def main():
     model.load_state_dict(torch.load('models/alphazero 0.pt'))
     encoder = Encoder(board_size)
 
-    rounds_per_move = 1
+    rounds_per_move = 300
     c = 0.6
     noise_intensity = 0.2
     alpha = 5
-    verbose = 1
+    verbose = 2
     bots = {
         Player.black: AlphaZeroAgent(model, encoder, rounds_per_move=rounds_per_move, 
                                      c=c, is_self_play=True, 

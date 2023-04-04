@@ -9,6 +9,7 @@ from board import GameState
 from player import Player
 from net import AlphaZeroNet
 from encoder import Encoder
+from utils import get_model_name, save_path
 
 
 def simulate_game(black_player, white_player, board_size):
@@ -51,20 +52,10 @@ def self_play_simulation(agent1, agent2, num_games, save_path, board_size):
     experience.save_experience(save_path)
     print('saved')
 
-def get_model_name(model_path):
-    return model_path.split('/')[-1].split('.')[0]
-
-def save_path(model_path, total_num_game, i_th=None):
-    if i_th is not None:
-        return 'experience/%s self-play %d %d.pickle' %(get_model_name(model_path), total_num_game, i_th)
-    else:
-        return 'experience/%s self-play %d.pickle' %(get_model_name(model_path), total_num_game)
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--num-games', '-n', type=int, default=1000)
     parser.add_argument('--model',  '-m')
-    # parser.add_argument('--file-out', '-f', default='')
     parser.add_argument('--board-size', '-b', type=int, default=9)
     parser.add_argument('--num-rollout-per-move', '-rollout', type=int, default=1000)
     parser.add_argument('--c', '-c', type=float)
