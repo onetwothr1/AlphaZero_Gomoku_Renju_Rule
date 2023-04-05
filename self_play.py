@@ -52,7 +52,7 @@ def self_play_simulation(agent1, agent2, num_games, save_path, board_size, verbo
         collector1.begin_episode()
         collector2.begin_episode()
         if verbose:
-            print("////// Start Game %d //////" %(i+1))
+            print("////////  Start Game %d  ////////" %(i+1))
         game_record = simulate_game(agent1, agent2, board_size, verbose)
         if game_record == Player.black:
             collector1.complete_episode(reward=1)
@@ -89,11 +89,11 @@ def main():
     agent1 = alphazero_agent.AlphaZeroAgent(net, encoder, args.num_rollout_per_move,
                                             c=args.c, is_self_play=True,
                                             dirichlet_noise_intensity=args.noise_intensity,
-                                            dirichlet_alpha=args.alpha, verbose=args.verbose)
+                                            dirichlet_alpha=args.alpha, verbose=max(args.verbose-1,0))
     agent2 = alphazero_agent.AlphaZeroAgent(net, encoder, args.num_rollout_per_move,
                                             c=args.c, is_self_play=True,
                                             dirichlet_noise_intensity=args.noise_intensity,
-                                            dirichlet_alpha=args.alpha, verbose=args.verbose)
+                                            dirichlet_alpha=args.alpha, verbose=max(args.verbose-1,0))
     
     start = time.time()
     # it makes while-loop be able to use 'tqdm' progress bar
