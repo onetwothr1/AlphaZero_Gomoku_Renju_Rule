@@ -2,11 +2,13 @@ import argparse
 from tqdm import tqdm
 import torch
 from scipy.stats import binomtest
+
 from player import Player
 from self_play import simulate_game
 from agent import *
 from net import *
 from encoder import Encoder
+from utils import *
 
 def performance_comparison(agent1, agent2, board_size, num_games=100, winning_threshold=None, pvalue_threshold=None, verbose=False):
     '''
@@ -15,6 +17,12 @@ def performance_comparison(agent1, agent2, board_size, num_games=100, winning_th
     '''
     agent1_win = 0
     agent2_win = 0
+
+    agent1_avg_depth_list = []
+    agent1_max_depth_list = []
+    agent2_avg_depth_list = []
+    agent2_max_depth_list = []
+
     for i in tqdm(range(num_games)):
         if verbose:
             print("////////  %dth Game  ////////" %(i+1))
@@ -34,10 +42,33 @@ def performance_comparison(agent1, agent2, board_size, num_games=100, winning_th
                 agent2_win += 1
             else:
                 agent1_win += 1
+        
+        # statistics on tree-depth
+        if verbose:
+            print()
+            print_tree_depth_statistics("Agent 1",
+                                        agent1.avg_depth_list,
+                                        agent1.max_depth_list,
+                                        "Agent 2",
+                                        agent2.avg_depth_list,
+                                        agent2.max_depth_list)
+        agent1_avg_depth_list += agent1.avg_depth_list
+        agent1_max_depth_list += agent1.max_depth_list
+        agent2_avg_depth_list += agent2.avg_depth_list
+        agent2_max_depth_list += agent2.max_depth_list
 
     p_val = binomtest(agent1_win, num_games, 0.5)
+    print("\nComparison finished.")
     print('%d wins out of %d' %(agent1_win, num_games))
     print('p-value %f' %(p_val))
+
+    print()
+    print_tree_depth_statistics("Agent 1",
+                                agent1_avg_depth_list,
+                                agent1_max_depth_list,
+                                "Agent 2",
+                                agent2_avg_depth_list,
+                                agent2_max_depth_list)
 
     if winning_threshold:
         return agent1_win >= winning_threshold

@@ -69,8 +69,8 @@ class AlphaZeroAgent(Agent):
         self.alpha = dirichlet_alpha
         self.verbose = verbose # 0: none, 1: progress bar, 2: + thee-depth 3: + candidate moves
         self.collector = None # used when generating self-play data
-        self.avg_depth = [] # average of tree-depth in MCTS
-        self.avg_max_depth = [] # average of max tree-depth per each move
+        self.avg_depth_list = [] # average of tree-depth in MCTS
+        self.max_depth_list = [] # max tree-depth per each move
     
     def select_move(self, game_state):
         # Tree Search
@@ -115,8 +115,8 @@ class AlphaZeroAgent(Agent):
         # Statistics on tree-depth
         avg_depth = sum(depth_cnt_list) / len(depth_cnt_list)
         max_depth = max(depth_cnt_list)
-        self.avg_depth.append(avg_depth)
-        self.avg_max_depth.append(max_depth)
+        self.avg_depth_list.append(avg_depth)
+        self.max_depth_list.append(max_depth)
         if self.verbose >= 2:
             print('average depth: %.2f, max depth: %d' %(avg_depth, max_depth))
     

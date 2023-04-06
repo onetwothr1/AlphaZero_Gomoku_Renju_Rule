@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
+from numpy import average
 import platform
 import subprocess
+
 from player import Player
 from board import Point, GameState
 
@@ -77,6 +79,17 @@ def print_not_empty():
 
 def print_invalid_move():
     print("that move is forbidden. try another move.")
+
+def print_tree_depth_statistics(player1, p1_avg_depths, p1_max_depths, player2, p2_avg_depths, p2_max_depths):
+    print(player1)
+    print("- average tree-search depth: %.2f" %(average(p1_avg_depths)))
+    print("- average of max depth per each move: %d" %(average(p1_max_depths)))
+    print("- max depth in the game: %d" %(max(p1_max_depths)))
+    print()
+    print(player2)
+    print("- average tree-search depth: %.2f" %(average(p2_avg_depths)))
+    print("- average of max depth per each move: %d" %(average(p2_max_depths)))
+    print("- max depth in the game: %d" %(max(p2_max_depths)))
 
 def clear_screen():
     # see https://stackoverflow.com/a/23075152/323316

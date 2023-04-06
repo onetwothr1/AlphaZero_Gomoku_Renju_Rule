@@ -1,5 +1,4 @@
 import torch
-from numpy import average
 
 from agent import *
 from net import *
@@ -56,10 +55,13 @@ def main():
 
     if verbose >= 2:
         print()
-        print("Black's average tree-search depth: %.2f" %(average(bots[Player.black].avg_depth)))
-        print("Black's average of max depth per each move: %d" %(average(bots[Player.black].avg_max_depth)))
-        print("White's average tree-search depth: %.2f" %(average(bots[Player.white].avg_depth)))
-        print("White's average of max depth per each move: %d" %(average(bots[Player.white].avg_max_depth)))
+        print_tree_depth_statistics("Black",
+                                    bots[Player.black].avg_depth_list,
+                                    bots[Player.black].max_depth_list,
+                                    "White",
+                                    bots[Player.white].avg_depth_list,
+                                    bots[Player.white].max_depth_list)
+        
 
 if __name__ == '__main__':
     main()
