@@ -67,24 +67,25 @@ class AlphaZeroAgent(Agent):
         self.is_self_play = is_self_play
         self.noise_intensity = dirichlet_noise_intensity
         self.alpha = dirichlet_alpha
-        self.verbose = verbose # 0: none, 1: progress bar, 2: + candidate moves
+        self.verbose = verbose # 0: none, 1: progress bar, 2: + thee-depth 3: + candidate moves
         self.collector = None # used when generating self-play data
+        self.avg_depth = [] # average of tree-depth in MCTS
+        self.avg_max_depth = [] # average of max tree-depth per each move
     
     def select_move(self, game_state):
-        # print("SELECT MOVE")
-        # print('game_state.board')
-        # print_board(game_state.board)
-        root = self.create_node(game_state)
-        # print("root")
-        # print_board(root.state.board)
         # Tree Search
+        root = self.create_node(game_state)
+        depth_cnt_list = []
         for _ in tqdm(range(self.num_rounds), disable=not self.verbose):
             # Walking down the tree
+            depth_cnt = 1
             node = root
             next_move = self.select_branch(node)
             while node.has_child(next_move):
                 node = node.get_child(next_move)
                 next_move = self.select_branch(node)
+                depth_cnt += 1
+            depth_cnt_list.append(depth_cnt)
 
             if next_move is not None:
                 # Expanding the tree
@@ -110,6 +111,14 @@ class AlphaZeroAgent(Agent):
                 move = node.last_move
                 node = node.parent
                 value = -1 * value
+        
+        # Statistics on tree-depth
+        avg_depth = sum(depth_cnt_list) / len(depth_cnt_list)
+        max_depth = max(depth_cnt_list)
+        self.avg_depth.append(avg_depth)
+        self.avg_max_depth.append(max_depth)
+        if self.verbose >= 2:
+            print('average depth: %.2f, max depth: %d' %(avg_depth, max_depth))
     
         # Record on experience collrector
         if self.collector is not None:
@@ -127,7 +136,7 @@ class AlphaZeroAgent(Agent):
         if len(root.moves()) == 0:
             return NoPossibleMove()
         
-        if self.verbose >= 2:
+        if self.verbose >= 3:
             for top_move in sorted(root.moves(), key=root.visit_count, reverse=True)[:10]:
                 print(coords_from_point(top_move), '\t visit %d' %(root.visit_count(top_move)))
 

@@ -1,11 +1,12 @@
+import torch
+from numpy import average
+
 from agent import *
 from net import *
 from encoder import Encoder
 from player import Player
 from board import GameState
 from utils import *
-import torch
-
 
 def main():
     board_size = 9
@@ -18,7 +19,7 @@ def main():
     c = 0.6
     noise_intensity = 0.2
     alpha = 5
-    verbose = 2
+    verbose = 3 # 0: none, 1: progress bar, 2: + thee-depth 3: + candidate moves
     bots = {
         Player.black: AlphaZeroAgent(model, encoder, rounds_per_move=rounds_per_move, 
                                      c=c, is_self_play=True, 
@@ -52,6 +53,13 @@ def main():
         print_winner(game.winner)
     else:
         print_board_is_full()
+
+    if verbose >= 2:
+        print()
+        print("Black's average tree-search depth: %.2f" %(average(bots[Player.black].avg_depth)))
+        print("Black's average of max depth per each move: %d" %(average(bots[Player.black].avg_max_depth)))
+        print("White's average tree-search depth: %.2f" %(average(bots[Player.white].avg_depth)))
+        print("White's average of max depth per each move: %d" %(average(bots[Player.white].avg_max_depth)))
 
 if __name__ == '__main__':
     main()

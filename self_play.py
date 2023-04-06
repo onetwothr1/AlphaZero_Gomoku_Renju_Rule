@@ -80,7 +80,7 @@ def main():
     parser.add_argument('--c', '-c', type=float)
     parser.add_argument('--noise-intensity', type=float)
     parser.add_argument('--alpha', type=float)
-    parser.add_argument('--verbose', type=int, default=0)
+    parser.add_argument('--verbose', type=int, default=0) # 0: none, 1: show play, 2: + progress bar, 3: + thee-depth, 4: + candidate moves
     args = parser.parse_args()
 
     net = AlphaZeroNet(args.board_size)
