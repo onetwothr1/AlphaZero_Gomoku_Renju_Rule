@@ -13,52 +13,50 @@ from experience import ExperienceCollector
 from utils import get_model_name, save_graph_img
 
 
-def encode_reward(actions, rewards, board_size):
-    num_actions = actions.shape[0]
-    target_vectors = np.zeros((num_actions, board_size ** 2))
-    for i in range(num_actions):
-        action = actions[i]
-        reward = rewards[i]
-        target_vectors[i][action] = reward
-    target_vectors = torch.tensor(target_vectors, dtype=torch.float)
-    return target_vectors
+# def encode_reward(actions, rewards, board_size):
+#     num_actions = actions.shape[0]
+#     target_vectors = np.zeros((num_actions, board_size ** 2))
+#     for i in range(num_actions):
+#         action = actions[i]
+#         reward = rewards[i]
+#         target_vectors[i][action] = reward
+#     target_vectors = torch.tensor(target_vectors, dtype=torch.float)
+#     return target_vectors
 
-def train_policy_net(model, dataset, model_save_dir, device, num_epochs, lr, batch_size, board_size, early_stop):
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    model_epoch = int(model.name.split(' ')[-1].split('.')[0])
+# def train_policy_net(model, dataset, model_save_dir, device, num_epochs, lr, batch_size, board_size, early_stop):
+#     criterion = nn.CrossEntropyLoss()
+#     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
+#     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+#     model_epoch = int(model.name.split(' ')[-1].split('.')[0])
 
-    print('num data:', len(dataset))
-    print('num batch:', len(dataloader))
+#     print('num data:', len(dataset))
+#     print('num batch:', len(dataloader))
 
-    for epoch in range(1, num_epochs+1):
-        print('--------------------------------')
-        print("Epoch %s" %(epoch))
-        for i, (board_tensor, action, reward) in tqdm(enumerate(dataloader)):
-            board_tensor = board_tensor.to(device)
-            action = action.to(device)
-            reward = reward.to(device)
+#     for epoch in range(1, num_epochs+1):
+#         print('--------------------------------')
+#         print("Epoch %s" %(epoch))
+#         for i, (board_tensor, action, reward) in tqdm(enumerate(dataloader)):
+#             board_tensor = board_tensor.to(device)
+#             action = action.to(device)
+#             reward = reward.to(device)
 
-            optimizer.zero_grad()
-            policy_predict = model(board_tensor)
-            reward_encoded = encode_reward(action, reward, board_size).to(device)
-            loss = criterion(policy_predict, reward_encoded)
-            loss.backward()
-            optimizer.step()
+#             optimizer.zero_grad()
+#             policy_predict = model(board_tensor)
+#             reward_encoded = encode_reward(action, reward, board_size).to(device)
+#             loss = criterion(policy_predict, reward_encoded)
+#             loss.backward()
+#             optimizer.step()
 
-    torch.save(model.state_dict(), model_save_dir + '/model %d.pt' %(epoch + model_epoch))
-    print('training successfully ended.')
+#     torch.save(model.state_dict(), model_save_dir + '/model %d.pt' %(epoch + model_epoch))
+#     print('training successfully ended.')
 
 
 def train_alphazero_net(model, dataset, device, num_epochs, lr, batch_size, early_stop):
     policy_criterion = nn.CrossEntropyLoss()
     value_criterion = nn.MSELoss()
-    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.95)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    model_name = model.name.split(' ')[0]
-    model_epoch = int(model.name.split(' ')[-1])
 
     print('num data:', len(dataset))
     print('num batch:', len(dataloader))
@@ -89,7 +87,7 @@ def train_alphazero_net(model, dataset, device, num_epochs, lr, batch_size, earl
             optimizer.step()
             
             running_loss += loss.item()
-        scheduler.step(loss)
+        scheduler.step()
 
         avg_loss = running_loss / len(dataloader)
         losses.append(avg_loss)
@@ -98,16 +96,16 @@ def train_alphazero_net(model, dataset, device, num_epochs, lr, batch_size, earl
         if avg_loss < best_loss:
             best_loss = avg_loss
             early_stop_count = 0
-            torch.save(model.state_dict(), 'models/%s %d.pt' %(model_name, model_epoch + epoch))
+            torch.save(model.state_dict(), 'models/%s %d.pt' %(model.name, epoch))
         else:
             early_stop_count += 1
             if early_stop_count >= early_stop:
                 print('training early stopped.')
                 break
 
-    with open('models/%s %d loss.pickle' %(model_name, model_epoch + epoch), 'wb') as f:
+    with open('models/%s %d loss.pickle' %(model.name, epoch), 'wb') as f:
         pickle.dump(losses, f)
-    save_graph_img(losses, 'models/%s %d loss.png' %(model_name, model_epoch + epoch))
+    save_graph_img(losses, 'models/%s %d loss.png' %(model.name, epoch))
     print('training successfully ended.')
 
 

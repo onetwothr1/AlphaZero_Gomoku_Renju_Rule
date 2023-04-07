@@ -122,6 +122,7 @@ class AlphaZeroAgent(Agent):
     
         # Record on experience collrector
         if self.collector is not None:
+            # print("Record on experience")
             root_state_tensor = self.encoder.encode_board(game_state)
             visit_counts = np.array([
                 root.visit_count(
@@ -129,6 +130,9 @@ class AlphaZeroAgent(Agent):
                 for idx in range(self.encoder.num_moves())
             ])
             mcts_prob = visit_counts / np.sum(visit_counts)
+            # print(visit_counts)
+            # print(sum(visit_counts))
+            # print(mcts_prob)
             self.collector.record_decision(
                 root_state_tensor, mcts_prob)
 

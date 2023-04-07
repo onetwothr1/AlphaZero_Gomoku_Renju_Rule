@@ -80,17 +80,24 @@ if __name__=='__main__':
     parser.add_argument('--model1', type=str)
     parser.add_argument('--model2', type=str)
     parser.add_argument('--board-size', '-b', type=int, default=9)
+    parser.add_argument('--num_games', '-n', type=int, default=100)
     parser.add_argument('--winning-threshold', '-win', type=int, default=60)
     parser.add_argument('--pvalue-threshold', '-pvalue', type=float)
+    parser.add_argument('--verbose', type=int, default=0)
     args = parser.parse_args()
 
     board_size = 9
-    net = AlphaZeroNet(board_size)
-    net.load_state_dict(torch.load('models/alphazero 0.pt'))
+    net1 = AlphaZeroNet(board_size)
+    net1.load_state_dict(torch.load(args.model1))
+    net2 = AlphaZeroNet(board_size)
+    net2.load_state_dict(torch.load(args.model2))
     encoder = Encoder(board_size)
-    agent1 = AlphaZeroAgent(net, encoder, rounds_per_move=100,
+    agent1 = AlphaZeroAgent(net1, encoder, rounds_per_move=100,
                             c=0.6, is_self_play=False,
                             dirichlet_noise_intensity=0.2,
-                            dirichlet_alpha=5, verbose=0)
-    agent2 = RandomBot()
-    performance_comparison(agent1, agent2, board_size, num_games=20, verbose=True)
+                            dirichlet_alpha=5, verbose=args.verbose)
+    agent2 = AlphaZeroAgent(net2, encoder, rounds_per_move=100,
+                            c=0.6, is_self_play=False,
+                            dirichlet_noise_intensity=0.2,
+                            dirichlet_alpha=5, verbose=args.verbose)
+    performance_comparison(agent1, agent2, board_size, num_games=args.num_games, verbose=True)

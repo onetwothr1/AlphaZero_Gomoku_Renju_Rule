@@ -14,7 +14,7 @@ def main():
     model.load_state_dict(torch.load('models/alphazero 0.pt'))
     encoder = Encoder(board_size)
 
-    rounds_per_move = 300
+    rounds_per_move = 100
     c = 0.6
     noise_intensity = 0.2
     alpha = 5
