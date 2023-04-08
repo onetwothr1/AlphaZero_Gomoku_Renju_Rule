@@ -8,50 +8,11 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-from net import PolicyNet, AlphaZeroNet
+from alphazero_net import AlphaZeroNet
 from experience import ExperienceCollector
 from utils import get_model_name, save_graph_img
 
-
-# def encode_reward(actions, rewards, board_size):
-#     num_actions = actions.shape[0]
-#     target_vectors = np.zeros((num_actions, board_size ** 2))
-#     for i in range(num_actions):
-#         action = actions[i]
-#         reward = rewards[i]
-#         target_vectors[i][action] = reward
-#     target_vectors = torch.tensor(target_vectors, dtype=torch.float)
-#     return target_vectors
-
-# def train_policy_net(model, dataset, model_save_dir, device, num_epochs, lr, batch_size, board_size, early_stop):
-#     criterion = nn.CrossEntropyLoss()
-#     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
-#     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-#     model_epoch = int(model.name.split(' ')[-1].split('.')[0])
-
-#     print('num data:', len(dataset))
-#     print('num batch:', len(dataloader))
-
-#     for epoch in range(1, num_epochs+1):
-#         print('--------------------------------')
-#         print("Epoch %s" %(epoch))
-#         for i, (board_tensor, action, reward) in tqdm(enumerate(dataloader)):
-#             board_tensor = board_tensor.to(device)
-#             action = action.to(device)
-#             reward = reward.to(device)
-
-#             optimizer.zero_grad()
-#             policy_predict = model(board_tensor)
-#             reward_encoded = encode_reward(action, reward, board_size).to(device)
-#             loss = criterion(policy_predict, reward_encoded)
-#             loss.backward()
-#             optimizer.step()
-
-#     torch.save(model.state_dict(), model_save_dir + '/model %d.pt' %(epoch + model_epoch))
-#     print('training successfully ended.')
-
-
-def train_alphazero_net(model, dataset, device, num_epochs, lr, batch_size, early_stop):
+def train(model, dataset, device, num_epochs, lr, batch_size, early_stop):
     policy_criterion = nn.CrossEntropyLoss()
     value_criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -111,7 +72,6 @@ def train_alphazero_net(model, dataset, device, num_epochs, lr, batch_size, earl
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--network', type=str, default='alphazero_net')
     parser.add_argument('--model-load-path', '-m')
     parser.add_argument('--data-path', '-d')
     parser.add_argument('--board-size', '-b', type=int, default=9)
@@ -129,23 +89,13 @@ def main():
     dataset = ExperienceCollector()
     dataset.load_experience(args.data_path)
 
-    if args.network == 'alphazero_net':
-        train_alphazero_net(model = model,
-            dataset = dataset,
-            device = device,
-            num_epochs = args.num_epochs,
-            lr = args.learning_rate,
-            batch_size = args.batch_size,
-            early_stop = args.early_stop)
-    else:
-        train_policy_net(model = model,
-            dataset = dataset,
-            device = device,
-            num_epochs = args.num_epochs,
-            lr = args.learning_rate,
-            batch_size = args.batch_size,
-            board_size = args.board_size,
-            early_stop = args.early_stop)
+    train(model = model,
+        dataset = dataset,
+        device = device,
+        num_epochs = args.num_epochs,
+        lr = args.learning_rate,
+        batch_size = args.batch_size,
+        early_stop = args.early_stop)
 
 if __name__=='__main__':
     main()

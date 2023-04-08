@@ -3,11 +3,11 @@ from tqdm import tqdm
 import torch
 from scipy.stats import binomtest
 
-from player import Player
 from self_play import simulate_game
 from agent import *
-from net import *
+from alphazero_net import AlphaZeroNet
 from encoder import Encoder
+from player import Player
 from utils import *
 
 def performance_comparison(agent1, agent2, board_size, num_games=100, winning_threshold=None, pvalue_threshold=None, verbose=False):
@@ -57,7 +57,7 @@ def performance_comparison(agent1, agent2, board_size, num_games=100, winning_th
         agent2_avg_depth_list += agent2.avg_depth_list
         agent2_max_depth_list += agent2.max_depth_list
 
-    p_val = binomtest(agent1_win, num_games, 0.5)
+    p_val = binomtest(agent1_win, num_games, 0.5).pvalue
     print("\nComparison finished.")
     print('%d wins out of %d' %(agent1_win, num_games))
     print('p-value %f' %(p_val))
@@ -83,7 +83,7 @@ if __name__=='__main__':
     parser.add_argument('--num_games', '-n', type=int, default=100)
     parser.add_argument('--winning-threshold', '-win', type=int, default=60)
     parser.add_argument('--pvalue-threshold', '-pvalue', type=float)
-    parser.add_argument('--verbose', type=int, default=0)
+    parser.add_argument('--verbose', type=int, default=0)  # 0: none, 1: show play, 2: + progress bar, 3: + thee-depth, 4: + candidate moves
     args = parser.parse_args()
 
     board_size = 9
@@ -93,11 +93,7 @@ if __name__=='__main__':
     net2.load_state_dict(torch.load(args.model2))
     encoder = Encoder(board_size)
     agent1 = AlphaZeroAgent(net1, encoder, rounds_per_move=100,
-                            c=0.6, is_self_play=False,
-                            dirichlet_noise_intensity=0.2,
-                            dirichlet_alpha=5, verbose=args.verbose)
+                            c=0.6, is_self_play=False, verbose=max(args.verbose-1,0))
     agent2 = AlphaZeroAgent(net2, encoder, rounds_per_move=100,
-                            c=0.6, is_self_play=False,
-                            dirichlet_noise_intensity=0.2,
-                            dirichlet_alpha=5, verbose=args.verbose)
+                            c=0.6, is_self_play=False, verbose=max(args.verbose-1,0))
     performance_comparison(agent1, agent2, board_size, num_games=args.num_games, verbose=True)

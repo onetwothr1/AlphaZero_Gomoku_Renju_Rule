@@ -1,4 +1,3 @@
-from player import Player
 from board import GameState
 from utils import *
 

@@ -1,23 +1,26 @@
 import torch
 
 from agent import *
-from net import *
+from alphazero_net import AlphaZeroNet
 from encoder import Encoder
-from player import Player
 from board import GameState
+from player import Player
 from utils import *
 
 def main():
     board_size = 9
     game = GameState.new_game(board_size)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = AlphaZeroNet(board_size)
-    model.load_state_dict(torch.load('models/alphazero 0.pt'))
+    # model.load_model('models/alphazero 0 129.pt')
+    # model.load_state_dict(torch.load('models/alphazero 0 129.pt'), map_location=device)
+    model.load_state_dict(torch.load('models/new.pt'))
     encoder = Encoder(board_size)
 
     rounds_per_move = 100
-    c = 0.6
+    c = 1.5
     noise_intensity = 0.2
-    alpha = 5
+    alpha = 0.1
     verbose = 3 # 0: none, 1: progress bar, 2: + thee-depth 3: + candidate moves
     bots = {
         Player.black: AlphaZeroAgent(model, encoder, rounds_per_move=rounds_per_move, 
@@ -30,6 +33,7 @@ def main():
                                      dirichlet_alpha=alpha, verbose=verbose),
     }
     bot_move = None
+    set_stone_color()
     print_board(game.board)
 
     while not game.is_over():

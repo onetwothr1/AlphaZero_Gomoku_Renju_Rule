@@ -6,9 +6,9 @@ from multiprocessing import Process
 from experience import *
 from agent import *
 from board import GameState
-from player import Player
-from net import AlphaZeroNet
+from alphazero_net import AlphaZeroNet
 from encoder import Encoder
+from player import Player
 from utils import get_model_name, save_path
 
 
@@ -95,7 +95,7 @@ def main():
         processes.append(process)
         saved_files.append(_save_path)
     for process in processes:
-            process.start()
+        process.start()
     for process in processes:
         process.join()
     print(time.time() - start)

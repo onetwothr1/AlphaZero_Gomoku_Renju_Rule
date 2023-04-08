@@ -2,12 +2,40 @@ import matplotlib.pyplot as plt
 from numpy import average
 import platform
 import subprocess
+import enum
 
-from player import Player
 from board import Point, GameState
+from player import Player
 
 COLS = 'ABCDEFGHJKLMNOPQRST'
 
+class StoneIcon:
+    black = '●'
+    white = '○'
+    
+    def change():
+        StoneIcon.black = '○'
+        StoneIcon.white = '●'
+
+def set_stone_color():
+    print("Which one is black? Type 1 or 2.")
+    print("1: %s, 2: %s" %(StoneIcon.black, StoneIcon.white))
+    while True:
+        answer = input()
+        try:
+            answer = int(answer)
+        except:
+            print('Wrong input. Type only one of 1 or 2.')
+            continue
+        if answer==Player.black.value:
+            print('Stone color is now set.\n')
+            break
+        elif answer==Player.white.value:
+            StoneIcon.change()
+            print('Stone color is now set.\n')
+            break
+        else:
+            print('Wrong input. Type only one of 1 or 2.')
 
 def print_move(player, move):
     if player is None or move is None:
@@ -15,18 +43,31 @@ def print_move(player, move):
     move_str = '%s%d' % (COLS[move.col], move.row)
     print('%s %s' % (player, move_str))
 
+
 def print_board(board):
+    # for row in range(board.board_size-1, -1, -1):
+    #     line = []
+    #     for col in range(board.board_size):
+    #         stone = board.get(Point(row=row, col=col))
+    #         if stone==0:
+    #             line.append(' ')
+    #         elif stone==Player.black:
+    #             line.append(StoneIcon.black)
+    #         elif stone==Player.white:
+    #             line.append(StoneIcon.white)
+    #     print(' %d %s' % (row, ' '.join(line)))
+    # print('   ' + ' '.join(COLS[:board.board_size]))
     for row in range(board.board_size-1, -1, -1):
         line = []
         for col in range(board.board_size):
             stone = board.get(Point(row=row, col=col))
             if stone==0:
-                line.append(' ')
+                line.append('  ')
             elif stone==Player.black:
-                line.append('○')
+                line.append(StoneIcon.black)
             elif stone==Player.white:
-                line.append('●')
-        print(' %d %s' % (row, ' '.join(line)))
+                line.append(StoneIcon.white)
+        print(' %d %s' % (row, ''.join(line)))
     print('   ' + ' '.join(COLS[:board.board_size]))
 
 def handle_input(_input, game: GameState, board_size):
@@ -75,7 +116,7 @@ def print_out_of_board():
     print("point is out of board. type a proper point again.")
 
 def print_not_empty():
-    print('the point is already occupied. type another point.')
+    print('the point is already occupied. try another point.')
 
 def print_invalid_move():
     print("that move is forbidden. try another move.")

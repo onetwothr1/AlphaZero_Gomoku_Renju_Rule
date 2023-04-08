@@ -1,8 +1,7 @@
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import pickle
 
 class AlphaZeroNet(nn.Module):
     def __init__(self, board_size):
@@ -38,3 +37,8 @@ class AlphaZeroNet(nn.Module):
         x_val = F.relu(self.val_fc1(x_val))
         x_val = torch.tanh(self.val_fc2(x_val))
         return x_act, x_val
+    
+    def load_model(self, path):
+        with open(path, 'rb') as f:
+            model_parameters = pickle.load(f)
+        self.load_state_dict(model_parameters)

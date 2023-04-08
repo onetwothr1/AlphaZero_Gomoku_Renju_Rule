@@ -5,9 +5,9 @@ import time
 from experience import *
 from agent import *
 from board import GameState
-from player import Player
-from net import AlphaZeroNet
+from alphazero_net import AlphaZeroNet
 from encoder import Encoder
+from player import Player
 from utils import *
 
 def simulate_game(black_player, white_player, board_size, verbose=False):
@@ -52,7 +52,7 @@ def self_play_simulation(agent1, agent2, num_games, save_path, board_size, verbo
         collector1.begin_episode()
         collector2.begin_episode()
         if verbose:
-            print("////////  Start Game %d  ////////" %(i+1))
+            print("\n////////  Start Game %d  ////////" %(i+1))
         game_record = simulate_game(agent1, agent2, board_size, verbose)
         if game_record == Player.black:
             collector1.complete_episode(reward=1)
