@@ -143,7 +143,7 @@ def get_model_name(model_path):
     return model_path.split('/')[-1].split('.')[0]
 
 def save_path(model_path, total_num_game, i_th=None):
-    if i_th is not None:
+    if i_th:
         return 'experience/%s self-play %d %d.pickle' %(get_model_name(model_path), total_num_game, i_th)
     else:
         return 'experience/%s self-play %d.pickle' %(get_model_name(model_path), total_num_game)

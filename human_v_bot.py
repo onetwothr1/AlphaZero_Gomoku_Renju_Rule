@@ -1,7 +1,7 @@
 import torch
 
 from agent import *
-from alphazero_net import AlphaZeroNet
+from net.alphazero_net import AlphaZeroNet
 from encoder import Encoder
 from board import GameState
 from player import Player

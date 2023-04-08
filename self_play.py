@@ -5,7 +5,7 @@ import time
 from experience import *
 from agent import *
 from board import GameState
-from alphazero_net import AlphaZeroNet
+from net.alphazero_net import AlphaZeroNet
 from encoder import Encoder
 from player import Player
 from utils import *
@@ -75,6 +75,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--num-games', '-n', type=int, default=1000)
     parser.add_argument('--model',  '-m')
+    parser.add_argument('--file-num', type=str, default='')
     parser.add_argument('--board-size', '-b', type=int, default=9)
     parser.add_argument('--num-rollout-per-move', '-rollout', type=int, default=1000)
     parser.add_argument('--c', '-c', type=float)
@@ -98,7 +99,7 @@ def main():
     start = time.time()
     # it makes while-loop be able to use 'tqdm' progress bar
     for _ in tqdm(self_play_simulation(agent1, agent2, args.num_games, 
-                                       save_path(args.model, args.num_games), args.board_size, args.verbose)): pass
+                                       save_path(args.model, args.num_games, args.file_num), args.board_size, args.verbose)): pass
     time_elapsed = time.time() - start
 
     # save self-play experience spec

@@ -6,7 +6,7 @@ from multiprocessing import Process
 from experience import *
 from agent import *
 from board import GameState
-from alphazero_net import AlphaZeroNet
+from net.alphazero_net import AlphaZeroNet
 from encoder import Encoder
 from player import Player
 from utils import get_model_name, save_path

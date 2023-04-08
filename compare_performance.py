@@ -5,7 +5,7 @@ from scipy.stats import binomtest
 
 from self_play import simulate_game
 from agent import *
-from alphazero_net import AlphaZeroNet
+from net.alphazero_net import AlphaZeroNet
 from encoder import Encoder
 from player import Player
 from utils import *
@@ -92,8 +92,15 @@ if __name__=='__main__':
     net2 = AlphaZeroNet(board_size)
     net2.load_state_dict(torch.load(args.model2))
     encoder = Encoder(board_size)
-    agent1 = AlphaZeroAgent(net1, encoder, rounds_per_move=100,
-                            c=0.6, is_self_play=False, verbose=max(args.verbose-1,0))
-    agent2 = AlphaZeroAgent(net2, encoder, rounds_per_move=100,
-                            c=0.6, is_self_play=False, verbose=max(args.verbose-1,0))
+    agent1 = AlphaZeroAgent(net1, encoder, rounds_per_move=200,
+                            c=1.4, is_self_play=True, 
+                            dirichlet_noise_intensity= 0.25,
+                            dirichlet_alpha=0.5,
+                            verbose=max(args.verbose-1,0))
+    agent2 = AlphaZeroAgent(net1, encoder, rounds_per_move=200,
+                            c=2.2, is_self_play=True, 
+                            dirichlet_noise_intensity= 0.25,
+                            dirichlet_alpha=0.5,
+                            verbose=max(args.verbose-1,0))
+    set_stone_color()
     performance_comparison(agent1, agent2, board_size, num_games=args.num_games, verbose=True)

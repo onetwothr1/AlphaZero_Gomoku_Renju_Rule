@@ -8,7 +8,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-from alphazero_net import AlphaZeroNet
+from net.alphazero_net import AlphaZeroNet
 from experience import ExperienceCollector
 from utils import get_model_name, save_graph_img
 
