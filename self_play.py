@@ -41,9 +41,9 @@ def simulate_game(black_player, white_player, board_size, verbose=False):
     return game.winner
 
 
-def self_play_simulation(agent1, agent2, num_games, save_path, board_size, verbose=False):
-    collector1 = ExperienceCollector()
-    collector2 = ExperienceCollector()
+def self_play_simulation(agent1, agent2, num_games, save_path, board_size, reward_decay, verbose=False):
+    collector1 = ExperienceCollector(reward_decay=reward_decay)
+    collector2 = ExperienceCollector(reward_decay=reward_decay)
     agent1.set_collector(collector1)
     agent2.set_collector(collector2)
 
@@ -75,17 +75,18 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--num-games', '-n', type=int, default=1000)
     parser.add_argument('--model',  '-m')
-    parser.add_argument('--file-num', type=str, default='')
+    parser.add_argument('--file-num', type=int, default=None)
     parser.add_argument('--board-size', '-b', type=int, default=9)
     parser.add_argument('--num-rollout-per-move', '-rollout', type=int, default=1000)
     parser.add_argument('--c', '-c', type=float)
     parser.add_argument('--noise-intensity', type=float)
     parser.add_argument('--alpha', type=float)
+    parser.add_argument('--reward-decay', type=float, default=0.92)
     parser.add_argument('--verbose', type=int, default=0) # 0: none, 1: show play, 2: + progress bar, 3: + thee-depth, 4: + candidate moves
     args = parser.parse_args()
 
     net = AlphaZeroNet(args.board_size)
-    net.load_state_dict(torch.load(args.model))
+    net.load_state_dict(torch.load(args.model, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu')))
     encoder = Encoder(args.board_size)
     agent1 = alphazero_agent.AlphaZeroAgent(net, encoder, args.num_rollout_per_move,
                                             c=args.c, is_self_play=True,
@@ -99,11 +100,12 @@ def main():
     start = time.time()
     # it makes while-loop be able to use 'tqdm' progress bar
     for _ in tqdm(self_play_simulation(agent1, agent2, args.num_games, 
-                                       save_path(args.model, args.num_games, args.file_num), args.board_size, args.verbose)): pass
+                                       save_path(args.model, args.num_games, args.file_num), 
+                                       args.board_size, args.reward_decay, args.verbose)): pass
     time_elapsed = time.time() - start
 
     # save self-play experience spec
-    with open('experience/%s self-play %d.txt' %(get_model_name(args.model), args.num_games), 'w') as file:
+    with open('experience/%s self-play %d.txt' %(save_path(args.model, args.num_games, args.file_num, True)), 'w') as file:
         file.write("rollout per move %d" %args.num_rollout_per_move)
         file.write("\nc %f" %args.c)
         file.write("\ndirichlet noise intensity %f" %args.noise_intensity)

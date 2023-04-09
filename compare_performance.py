@@ -25,7 +25,7 @@ def performance_comparison(agent1, agent2, board_size, num_games=100, winning_th
 
     for i in tqdm(range(num_games)):
         if verbose:
-            print("////////  %dth Game  ////////" %(i+1))
+            print("\n\n////////  %dth Game  ////////" %(i+1))
         if i % 2 ==0:
             if verbose:
                 print("Black: agent1, White: agent2")
@@ -92,15 +92,15 @@ if __name__=='__main__':
     net2 = AlphaZeroNet(board_size)
     net2.load_state_dict(torch.load(args.model2))
     encoder = Encoder(board_size)
-    agent1 = AlphaZeroAgent(net1, encoder, rounds_per_move=200,
-                            c=1.4, is_self_play=True, 
-                            dirichlet_noise_intensity= 0.25,
-                            dirichlet_alpha=0.5,
+    agent1 = AlphaZeroAgent(net1, encoder, rounds_per_move=100,
+                            c=1, is_self_play=False, 
+                            # dirichlet_noise_intensity= 0.25,
+                            # dirichlet_alpha=0.5,
                             verbose=max(args.verbose-1,0))
-    agent2 = AlphaZeroAgent(net1, encoder, rounds_per_move=200,
-                            c=2.2, is_self_play=True, 
-                            dirichlet_noise_intensity= 0.25,
-                            dirichlet_alpha=0.5,
+    agent2 = AlphaZeroAgent(net2, encoder, rounds_per_move=100,
+                            c=1.5, is_self_play=False, 
+                            # dirichlet_noise_intensity= 0.25,
+                            # dirichlet_alpha=0.5,
                             verbose=max(args.verbose-1,0))
     set_stone_color()
     performance_comparison(agent1, agent2, board_size, num_games=args.num_games, verbose=True)
