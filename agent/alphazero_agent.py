@@ -1,3 +1,4 @@
+import torch
 import numpy as np
 from tqdm import tqdm
 import random
@@ -81,7 +82,7 @@ class AlphaZeroAgent(Agent):
         # Tree Search
         root = self.create_node(game_state)
         depth_cnt_list = []
-        for _ in tqdm(range(self.num_rounds), disable=not self.verbose):
+        for _ in tqdm(range(self.num_rounds), disable=np.True_):
             # Walking down the tree
             depth_cnt = 1
             node = root
@@ -124,7 +125,11 @@ class AlphaZeroAgent(Agent):
         self.max_depth_list.append(max_depth)
         if self.verbose >= 2:
             print('average depth: %.2f, max depth: %d' %(avg_depth, max_depth))
-    
+
+        # If only moves left are forbidden moves
+        if len(root.moves()) == 0:
+            return NoPossibleMove()
+        
         # Record on experience collrector
         if self.collector is not None:
             # print("Record on experience")
@@ -139,9 +144,6 @@ class AlphaZeroAgent(Agent):
                 root_state_tensor, mcts_prob)
 
         # Select a move
-        if len(root.moves()) == 0:
-            return NoPossibleMove()
-        
         if self.verbose >= 3:
             for top_move in sorted(root.moves(), key=root.visit_count, reverse=True)[:10]:
                 print(coords_from_point(top_move), 
@@ -172,9 +174,9 @@ class AlphaZeroAgent(Agent):
 
     def create_node(self, game_state, last_move=None, parent=None):
         state_tensor = self.encoder.encode_board(game_state)
-        priors, values = self.model(state_tensor)
-        priors = priors[0]
-        value = values[0][0]           
+        log_priors, values = self.model(state_tensor)
+        priors = torch.exp(log_priors[0])
+        value = values[0][0]    
 
         if self.is_self_play:
             # add Dirichlet noise for exploration

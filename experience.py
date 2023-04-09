@@ -19,11 +19,17 @@ def combine_saved_experience(saved_experiences: list, save_path):
     rewards_list = []
     mcts_probs_list = []
     for experience in saved_experiences:
+        print(experience)
         collector = ExperienceCollector()
         collector.load_experience(experience)
-        collector.to_tensor()
+        print(len(collector))
+        if experience!='experience/alphazero 0 self-play 500 new.pickle':
+          collector.to_tensor()
+          rewards_list.append(collector.rewards)
+        else:
+          rewards_list.append(torch.tensor(collector.rewards))
         states_list.append(collector.states)
-        rewards_list.append(collector.rewards)
+        # rewards_list.append(collector.rewards)
         mcts_probs_list.append(collector.mcts_probs)
 
     combined = ExperienceCollector()
@@ -52,7 +58,7 @@ def rotate_augmentaion(experience, board_size):
     return augmented
 
 class ExperienceCollector(Dataset):
-    def __init__(self, board_size=9, num_encoded_plane=4, reward_decay=0.93):
+    def __init__(self, board_size=9, num_encoded_plane=4, reward_decay=0.92):
         self.states = [] # encoded tensor of board
         self.rewards = [] # 1 or -1
         self.mcts_probs = []

@@ -30,7 +30,7 @@ class AlphaZeroNet(nn.Module):
         # action policy layers
         x_act = F.relu(self.act_conv1(x))
         x_act = x_act.view(-1, 4 * self.board_size * self.board_size)
-        x_act = F.softmax(self.act_fc1(x_act), dim=1)
+        x_act = F.log_softmax(self.act_fc1(x_act), dim=1)
         # state value layers
         x_val = F.relu(self.val_conv1(x))
         x_val = x_val.view(-1, 2 * self.board_size * self.board_size)

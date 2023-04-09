@@ -45,30 +45,30 @@ def print_move(player, move):
 
 
 def print_board(board):
-    for row in range(board.board_size-1, -1, -1):
-        line = []
-        for col in range(board.board_size):
-            stone = board.get(Point(row=row, col=col))
-            if stone==0:
-                line.append(' ')
-            elif stone==Player.black:
-                line.append(StoneIcon.black)
-            elif stone==Player.white:
-                line.append(StoneIcon.white)
-        print(' %d %s' % (row, ' '.join(line)))
-    print('   ' + ' '.join(COLS[:board.board_size]))
     # for row in range(board.board_size-1, -1, -1):
     #     line = []
     #     for col in range(board.board_size):
     #         stone = board.get(Point(row=row, col=col))
     #         if stone==0:
-    #             line.append('  ')
+    #             line.append(' ')
     #         elif stone==Player.black:
     #             line.append(StoneIcon.black)
     #         elif stone==Player.white:
     #             line.append(StoneIcon.white)
-    #     print(' %d %s' % (row, ''.join(line)))
+    #     print(' %d %s' % (row, ' '.join(line)))
     # print('   ' + ' '.join(COLS[:board.board_size]))
+    for row in range(board.board_size-1, -1, -1):
+        line = []
+        for col in range(board.board_size):
+            stone = board.get(Point(row=row, col=col))
+            if stone==0:
+                line.append('  ')
+            elif stone==Player.black:
+                line.append(StoneIcon.black)
+            elif stone==Player.white:
+                line.append(StoneIcon.white)
+        print(' %d %s' % (row, ''.join(line)))
+    print('   ' + ' '.join(COLS[:board.board_size]))
 
 def handle_input(_input, game: GameState, board_size):
     point = point_from_coords(_input.strip(), board_size)
@@ -142,10 +142,16 @@ def clear_screen():
 def get_model_name(model_path):
     return model_path.split('/')[-1].split('.')[0]
 
-def save_path(model_path, total_num_game, i_th=None):
+def save_path(model_path, total_num_game, i_th=None, txt=False):
     if i_th:
-        return 'experience/%s self-play %d %d.pickle' %(get_model_name(model_path), total_num_game, i_th)
+        if txt:
+            return 'experience/%s self-play %d %d.txt' %(get_model_name(model_path), total_num_game, i_th)
+        else:
+            return 'experience/%s self-play %d %d.pickle' %(get_model_name(model_path), total_num_game, i_th)
     else:
+      if txt:
+        return 'experience/%s self-play %d.txt' %(get_model_name(model_path), total_num_game)
+      else:
         return 'experience/%s self-play %d.pickle' %(get_model_name(model_path), total_num_game)
 
 def save_graph_img(loss, policy_loss, value_loss, save_path):
