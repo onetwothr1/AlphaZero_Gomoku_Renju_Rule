@@ -45,30 +45,30 @@ def print_move(player, move):
 
 
 def print_board(board):
-    # for row in range(board.board_size-1, -1, -1):
-    #     line = []
-    #     for col in range(board.board_size):
-    #         stone = board.get(Point(row=row, col=col))
-    #         if stone==0:
-    #             line.append(' ')
-    #         elif stone==Player.black:
-    #             line.append(StoneIcon.black)
-    #         elif stone==Player.white:
-    #             line.append(StoneIcon.white)
-    #     print(' %d %s' % (row, ' '.join(line)))
-    # print('   ' + ' '.join(COLS[:board.board_size]))
     for row in range(board.board_size-1, -1, -1):
         line = []
         for col in range(board.board_size):
             stone = board.get(Point(row=row, col=col))
             if stone==0:
-                line.append('  ')
+                line.append(' ')
             elif stone==Player.black:
                 line.append(StoneIcon.black)
             elif stone==Player.white:
                 line.append(StoneIcon.white)
-        print(' %d %s' % (row, ''.join(line)))
+        print(' %d %s' % (row, ' '.join(line)))
     print('   ' + ' '.join(COLS[:board.board_size]))
+    # for row in range(board.board_size-1, -1, -1):
+    #     line = []
+    #     for col in range(board.board_size):
+    #         stone = board.get(Point(row=row, col=col))
+    #         if stone==0:
+    #             line.append('  ')
+    #         elif stone==Player.black:
+    #             line.append(StoneIcon.black)
+    #         elif stone==Player.white:
+    #             line.append(StoneIcon.white)
+    #     print(' %d %s' % (row, ''.join(line)))
+    # print('   ' + ' '.join(COLS[:board.board_size]))
 
 def handle_input(_input, game: GameState, board_size):
     point = point_from_coords(_input.strip(), board_size)
@@ -148,8 +148,11 @@ def save_path(model_path, total_num_game, i_th=None):
     else:
         return 'experience/%s self-play %d.pickle' %(get_model_name(model_path), total_num_game)
 
-def save_graph_img(_list, save_path):
-    plt.plot(_list)
+def save_graph_img(loss, policy_loss, value_loss, save_path):
+    plt.plot(loss, label='loss')
+    plt.plot(policy_loss, label='policy loss')
+    plt.plot(value_loss, label='value loss')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
+    plt.legend(loc='upper right')
     plt.savefig(save_path)

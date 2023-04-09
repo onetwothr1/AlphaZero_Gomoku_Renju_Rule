@@ -1,11 +1,8 @@
 import argparse
-import numpy as np
-import pickle
 from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from net.alphazero_net import AlphaZeroNet
@@ -23,7 +20,11 @@ def train(model, dataset, device, num_epochs, lr, batch_size, early_stop):
     print('num batch:', len(dataloader))
 
     losses = []
+    policy_losses = []
+    value_losses = []
     running_loss = 0.0
+    running_policy_loss = 0.0
+    running_value_loss = 0.0
     best_loss = 1e10
     early_stop_count = 0
 
@@ -48,11 +49,20 @@ def train(model, dataset, device, num_epochs, lr, batch_size, early_stop):
             optimizer.step()
             
             running_loss += loss.item()
+            running_policy_loss += policy_loss.item()
+            running_value_loss += value_loss.item()
         scheduler.step()
 
+        # record loss
         avg_loss = running_loss / len(dataloader)
+        avg_policy_loss = running_policy_loss / len(dataloader)
+        avg_value_loss = running_value_loss / len(dataloader)
         losses.append(avg_loss)
+        policy_losses.append(avg_policy_loss)
+        value_losses.append(avg_value_loss)
         running_loss = 0.0
+        running_policy_loss = 0.0
+        running_value_loss = 0.0
         print('average loss %.4f' %(avg_loss))
         if avg_loss < best_loss:
             best_loss = avg_loss
@@ -64,9 +74,7 @@ def train(model, dataset, device, num_epochs, lr, batch_size, early_stop):
                 print('training early stopped.')
                 break
 
-    with open('models/%s %d loss.pickle' %(model.name, epoch), 'wb') as f:
-        pickle.dump(losses, f)
-    save_graph_img(losses, 'models/%s %d loss.png' %(model.name, epoch))
+    save_graph_img(losses, policy_losses, value_losses, 'models/%s %d loss.png' %(model.name, epoch))
     print('training successfully ended.')
 
 

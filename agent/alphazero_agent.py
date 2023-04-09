@@ -7,7 +7,8 @@ from utils import coords_from_point, print_board
 
 class Branch:
     def __init__(self, prior):
-        self.prior = prior
+        self.prior = prior # prior probability from policy net
+        self.initial_value = 0.0 # inital expected value from value net
         self.visit_count = 0
         self.total_value = 0.0
 
@@ -28,8 +29,9 @@ class AlphaZeroTreeNode:
     def moves(self):
         return self.branches.keys()
 
-    def add_child(self, move, child_node):
+    def add_child(self, move, child_node, value):
         self.children[move] = child_node
+        self.branches[move].initial_value = value
 
     def has_child(self, move):
         return move in self.children
@@ -45,6 +47,9 @@ class AlphaZeroTreeNode:
     
     def prior(self, move):
         return self.branches[move].prior
+    
+    def initial_value(self, move):
+        return self.branches[move].initial_value
     
     def visit_count(self, move):
         if move in self.branches:
@@ -130,9 +135,6 @@ class AlphaZeroAgent(Agent):
                 for idx in range(self.encoder.num_moves())
             ])
             mcts_prob = visit_counts / np.sum(visit_counts)
-            # print(visit_counts)
-            # print(sum(visit_counts))
-            # print(mcts_prob)
             self.collector.record_decision(
                 root_state_tensor, mcts_prob)
 
@@ -142,7 +144,9 @@ class AlphaZeroAgent(Agent):
         
         if self.verbose >= 3:
             for top_move in sorted(root.moves(), key=root.visit_count, reverse=True)[:10]:
-                print(coords_from_point(top_move), '\t visit %d' %(root.visit_count(top_move)))
+                print(coords_from_point(top_move), 
+                      '    visit %3d  prior %.3f  value %.2f'
+                        %(root.visit_count(top_move), root.prior(top_move), root.initial_value(top_move)))
 
         most_visit_move = max(root.moves(), key=root.visit_count)
         max_visit = root.visit_count(most_visit_move)
@@ -167,12 +171,7 @@ class AlphaZeroAgent(Agent):
         return max(node.moves(), key=score_branch)
 
     def create_node(self, game_state, last_move=None, parent=None):
-        # print("CREATE NODE")
-        # print("game_state.board")
-        # print_board(game_state.board)
         state_tensor = self.encoder.encode_board(game_state)
-        # print("after encode")
-        # print_board(game_state.board)
         priors, values = self.model(state_tensor)
         priors = priors[0]
         value = values[0][0]           
@@ -193,5 +192,5 @@ class AlphaZeroAgent(Agent):
             move_priors,
             parent, last_move)
         if parent is not None:
-            parent.add_child(last_move, new_node)
+            parent.add_child(last_move, new_node, value)
         return new_node
