@@ -38,7 +38,6 @@ class AlphaZeroNet(nn.Module):
         x_val = torch.tanh(self.val_fc2(x_val))
         return x_act, x_val
     
-    def load_model(self, path):
-        with open(path, 'rb') as f:
-            model_parameters = pickle.load(f)
-        self.load_state_dict(model_parameters)
+    def load_model(self, model_path):
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.load_state_dict(torch.load(model_path, map_location=device))

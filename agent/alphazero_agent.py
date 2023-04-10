@@ -9,7 +9,7 @@ from utils import coords_from_point, print_board
 class Branch:
     def __init__(self, prior):
         self.prior = prior # prior probability from policy net
-        self.initial_value = 0.0 # inital expected value from value net
+        self.initial_value = 0.0 # expected value from value net
         self.visit_count = 0
         self.total_value = 0.0
 
@@ -65,7 +65,7 @@ class AlphaZeroTreeNode:
 class AlphaZeroAgent(Agent):
     def __init__(self, model, encoder, rounds_per_move=1000, c=2.0, 
                  is_self_play=False, dirichlet_noise_intensity=0.25, 
-                 dirichlet_alpha=0.05, verbose=0):
+                 dirichlet_alpha=0.05, verbose=0, name=None):
         self.model = model
         self.encoder = encoder
         self.num_rounds = rounds_per_move
@@ -74,6 +74,7 @@ class AlphaZeroAgent(Agent):
         self.noise_intensity = dirichlet_noise_intensity
         self.alpha = dirichlet_alpha
         self.verbose = verbose # 0: none, 1: progress bar, 2: + thee-depth 3: + candidate moves
+        self.name = name
         self.collector = None # used when generating self-play data
         self.avg_depth_list = [] # average of tree-depth in MCTS
         self.max_depth_list = [] # max tree-depth per each move
@@ -145,10 +146,13 @@ class AlphaZeroAgent(Agent):
 
         # Select a move
         if self.verbose >= 3:
+            # print candidate moves with there visit count and output of policy net and value net.
+            # if a candidate move has never been visited, it can not show the move's value. 
             for top_move in sorted(root.moves(), key=root.visit_count, reverse=True)[:10]:
                 print(coords_from_point(top_move), 
-                      '    visit %3d  prior %.3f  value %.2f'
-                        %(root.visit_count(top_move), root.prior(top_move), root.initial_value(top_move)))
+                      '    visit %3d  prior %.3f  value %s'
+                        %(root.visit_count(top_move), root.prior(top_move), 
+                          '%.2f'%(root.initial_value(top_move)) if root.visit_count(top_move) else '???'))
 
         most_visit_move = max(root.moves(), key=root.visit_count)
         max_visit = root.visit_count(most_visit_move)

@@ -37,11 +37,14 @@ def set_stone_color():
         else:
             print('Wrong input. Type only one of 1 or 2.')
 
-def print_move(player, move):
+def print_move(player, move, player_name=None):
     if player is None or move is None:
         return 0
     move_str = '%s%d' % (COLS[move.col], move.row)
-    print('%s %s' % (player, move_str))
+    if player_name:
+        print('%s (%s) %s' % (player, player_name, move_str))
+    else:
+        print('%s %s' % (player, move_str))
 
 
 def print_board(board):
@@ -142,17 +145,11 @@ def clear_screen():
 def get_model_name(model_path):
     return model_path.split('/')[-1].split('.')[0]
 
-def save_path(model_path, total_num_game, i_th=None, txt=False):
+def save_path(model_path, total_num_game, i_th=None, extension='.pickle'):
     if i_th:
-        if txt:
-            return 'experience/%s self-play %d %d.txt' %(get_model_name(model_path), total_num_game, i_th)
-        else:
-            return 'experience/%s self-play %d %d.pickle' %(get_model_name(model_path), total_num_game, i_th)
+        return 'experience/%s self-play %d %d%s' %(get_model_name(model_path), total_num_game, i_th, extension)
     else:
-      if txt:
-        return 'experience/%s self-play %d.txt' %(get_model_name(model_path), total_num_game)
-      else:
-        return 'experience/%s self-play %d.pickle' %(get_model_name(model_path), total_num_game)
+        return 'experience/%s self-play %d%s' %(get_model_name(model_path), total_num_game, extension)
 
 def save_graph_img(loss, policy_loss, value_loss, save_path):
     plt.plot(loss, label='loss')

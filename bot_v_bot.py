@@ -12,7 +12,7 @@ def main():
     game = GameState.new_game(board_size)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = AlphaZeroNet(board_size)
-    model.load_state_dict(torch.load('models/alphazero 750.pt'))
+    model.load_model('models/alphazero 750.pt')
     encoder = Encoder(board_size)
 
     rounds_per_move = 100
@@ -34,12 +34,12 @@ def main():
     }
     bot_move = None
     set_stone_color()
-    print_board(game.board)
+    # print_board(game.board)
 
     while not game.is_over():
         # clear_screen()
         print('----------------------------')
-        print_move(game.prev_player(), bot_move)
+        print_move(game.prev_player(), bot_move, bots[game.prev_player()].name)
         print_board(game.board)
 
         bot_move = bots[game.next_player].select_move(game)
@@ -47,13 +47,11 @@ def main():
 
     # clear_screen()
     print('----------------------------')
-    print_move(game.prev_player(), bot_move)
+    print_move(game.prev_player(), bot_move, bots[game.prev_player()].name)
     print_board(game.board)
 
     if game.winner:
-        if game.win_by_forcing_forbidden_move:
-            print_winner(game.winner, game.win_by_forcing_forbidden_move)
-        print_winner(game.winner)
+        print_winner(game.winner, game.win_by_forcing_forbidden_move)
     else:
         print_board_is_full()
 

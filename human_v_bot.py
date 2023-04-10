@@ -11,7 +11,7 @@ def main():
     board_size = 9
     game = GameState.new_game(board_size)
     model = AlphaZeroNet(board_size)
-    model.load_state_dict(torch.load('models/alphazero 0.pt'))
+    model.load_model('models/alphazero 0.pt')
     encoder = Encoder(board_size)
     bot = AlphaZeroAgent(model, encoder, rounds_per_move=3, 
                         c=0.6, is_self_play=True, 

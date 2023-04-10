@@ -20,7 +20,7 @@ def simulate_game(black_player, white_player, board_size, verbose=False):
     while not game.is_over():
         if verbose:
             print('----------------------------')
-            print_move(game.prev_player(), move)
+            print_move(game.prev_player(), move, agents[game.prev_player()].name if game.prev_player() else None)
             print_board(game.board)
 
         move = agents[game.next_player].select_move(game)
@@ -28,13 +28,11 @@ def simulate_game(black_player, white_player, board_size, verbose=False):
     
     if verbose:
         print('----------------------------')
-        print_move(game.prev_player(), move)
+        print_move(game.prev_player(), move, agents[game.prev_player()].name)
         print_board(game.board)
 
         if game.winner:
-            if game.win_by_forcing_forbidden_move:
-                print_winner(game.winner, game.win_by_forcing_forbidden_move)
-            print_winner(game.winner)
+            print_winner(game.winner, game.win_by_forcing_forbidden_move)
         else:
             print_board_is_full()
 
@@ -86,31 +84,34 @@ def main():
     args = parser.parse_args()
 
     net = AlphaZeroNet(args.board_size)
-    net.load_state_dict(torch.load(args.model, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu')))
+    net.load_model(args.model)
     encoder = Encoder(args.board_size)
     agent1 = alphazero_agent.AlphaZeroAgent(net, encoder, args.num_rollout_per_move,
                                             c=args.c, is_self_play=True,
                                             dirichlet_noise_intensity=args.noise_intensity,
-                                            dirichlet_alpha=args.alpha, verbose=max(args.verbose-1,0))
+                                            dirichlet_alpha=args.alpha, 
+                                            verbose=max(args.verbose-1,0))
     agent2 = alphazero_agent.AlphaZeroAgent(net, encoder, args.num_rollout_per_move,
                                             c=args.c, is_self_play=True,
                                             dirichlet_noise_intensity=args.noise_intensity,
-                                            dirichlet_alpha=args.alpha, verbose=max(args.verbose-1,0))
+                                            dirichlet_alpha=args.alpha, 
+                                            verbose=max(args.verbose-1,0))
     
     start = time.time()
-    # it makes while-loop be able to use 'tqdm' progress bar
+    # below code makes while-loop be able to use 'tqdm' progress bar
     for _ in tqdm(self_play_simulation(agent1, agent2, args.num_games, 
                                        save_path(args.model, args.num_games, args.file_num), 
-                                       args.board_size, args.reward_decay, args.verbose)): pass
+                                       args.board_size, args.reward_decay, args.verbose), 
+                total=args.num_games): pass
     time_elapsed = time.time() - start
 
     # save self-play experience spec
-    with open('experience/%s self-play %d.txt' %(save_path(args.model, args.num_games, args.file_num, True)), 'w') as file:
+    with open(save_path(args.model, args.num_games, args.file_num, '.txt'), 'w') as file:
         file.write("rollout per move %d" %args.num_rollout_per_move)
         file.write("\nc %f" %args.c)
         file.write("\ndirichlet noise intensity %f" %args.noise_intensity)
         file.write("\ndirichlet alpha %f" %args.alpha)
-        file.write("\ntime elapsed %f" %time_elapsed)
+        file.write("\ntime elapsed %ds" %time_elapsed)
 
     print('successfully saved self-play experience')
     
