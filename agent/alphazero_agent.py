@@ -97,7 +97,7 @@ class AlphaZeroAgent(Agent):
             if next_move is not None:
                 # Expanding the tree
                 new_state = node.state.apply_move(next_move)
-                if new_state.check_five(): # win
+                if new_state.check_winning(): # win
                     value = 1 # winner gets explicit reward from game result
                 elif new_state.board.is_full(): #draw
                     value = 0 # get explicit reward from game result

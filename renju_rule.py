@@ -55,6 +55,13 @@ class Renju_Rule(object):
             if cnt == 5:
                 return True
         return False
+    
+    def is_five_or_more(self, x, y, stone):
+        for i in range(4):
+            cnt = self.get_stone_count(x, y, stone, i)
+            if cnt >= 5:
+                return True
+        return False
 
     def find_empty_point(self, x, y, stone, direction):
         dx, dy = self.get_xy(direction)
@@ -137,7 +144,6 @@ class Renju_Rule(object):
     def forbidden_point(self, x, y, stone):
         if self.is_five(x, y, stone): return False
         elif self.is_six(x, y, stone):
-            # print("6목")
             return True
         elif self.double_three(x, y, stone) or self.double_four(x, y, stone): return True
         

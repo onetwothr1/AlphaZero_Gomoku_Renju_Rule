@@ -42,7 +42,7 @@ class Board():
                 if point == 0:
                     return False
         return True
-    
+
 
 class GameState():
     def __init__(self, board, next_player, previous, move):
@@ -80,6 +80,11 @@ class GameState():
     def new_game(board_size: int):
         board = Board(board_size)
         return GameState(board, Player.black, None, None)
+
+    # for board_test, playing on white
+    def new_game_test(board_size: int):
+        board = Board(board_size)
+        return GameState(board, Player.white, None, None)
 
     def is_empty(self, move):
         return self.board.is_empty(move)
@@ -122,12 +127,12 @@ class GameState():
             return True
         if self.win_by_forcing_forbidden_move:
             return True
-        if self.check_five():
+        if self.check_winning():
             self.winner = self.prev_player()
             return True
 
-    def check_five(self):
-        return self.rule.is_five(self.last_move.col, self.last_move.row, self.prev_player())
+    def check_winning(self):
+        return self.rule.is_five_or_more(self.last_move.col, self.last_move.row, self.prev_player())
     
     def prev_player(self):
         if self.previous_state is None:

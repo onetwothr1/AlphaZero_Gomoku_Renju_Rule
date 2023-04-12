@@ -2,11 +2,13 @@ from board import GameState
 from utils import *
 
 def main():
+    print("black (1) or white (2) ?")
+    player = int(input())
     board_size = 9
-    game = GameState.new_game(board_size)
+    game = GameState.new_game(board_size) if player==1 else GameState.new_game_test(board_size)
     move = None
-    print_board(game.board)
     
+    set_stone_color()
     while not game.is_over():
         clear_screen()
         print('----------------------------')
