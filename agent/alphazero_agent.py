@@ -165,7 +165,13 @@ class AlphaZeroAgent(Agent):
     def select_branch(self, node):
         if len(node.moves()) == 0:
             return None
+
+        # exploration
+        epsilon = 0.1
+        if random.random() < epsilon:
+            return random.choice(list(node.moves()))
         
+        # exploitation
         total_n = node.total_visit_count
 
         def score_branch(move):
