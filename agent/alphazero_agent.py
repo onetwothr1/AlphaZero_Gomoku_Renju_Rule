@@ -76,7 +76,7 @@ class AlphaZeroAgent(Agent):
         self.alpha = dirichlet_alpha
         self.verbose = verbose # 0: none, 1: progress bar, 2: + thee-depth 3: + candidate moves
         self.name = name
-        self.reward_decay = 0.96
+        self.reward_decay = 0.95
         self.collector = None # used when generating self-play data
         self.avg_depth_list = [] # average of tree-depth in MCTS
         self.max_depth_list = [] # max tree-depth per each move
