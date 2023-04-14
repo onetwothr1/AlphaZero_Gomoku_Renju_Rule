@@ -22,14 +22,10 @@ def combine_saved_experiences(saved_experiences: list, save_path):
         print(experience)
         collector = ExperienceCollector()
         collector.load_experience(experience)
+        collector.to_tensor()
         print(len(collector))
-        if experience!='experience/alphazero 0 self-play 500 new.pickle':
-          collector.to_tensor()
-          rewards_list.append(collector.rewards)
-        else:
-          rewards_list.append(torch.tensor(collector.rewards))
         states_list.append(collector.states)
-        # rewards_list.append(collector.rewards)
+        rewards_list.append(torch.tensor(collector.rewards))
         mcts_probs_list.append(collector.mcts_probs)
 
     combined = ExperienceCollector()

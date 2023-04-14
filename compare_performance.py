@@ -59,11 +59,10 @@ def performance_comparison(agent1, agent2, board_size, num_games=100, winning_th
 
     p_val = binomtest(agent1_win, agent1_win + agent2_win, 0.5).pvalue
     print('\n\n//////////////////////////////')
-    print("Comparison finished.")
-    print("%s vs %s => %d : %d" %(agent1.name, agent2.name, agent1_win, agent2_win))
+    print("<Comparison Finished>")
+    print("\n%s vs %s => %d : %d" %(agent1.name, agent2.name, agent1_win, agent2_win))
     print('p-value %f' %(p_val))
 
-    print()
     print_tree_depth_statistics(agent1.name,
                                 agent1_avg_depth_list,
                                 agent1_max_depth_list,
@@ -94,14 +93,14 @@ if __name__=='__main__':
     net2 = AlphaZeroNet(board_size)
     net2.load_model(args.model2)
     encoder = Encoder(board_size)
-    agent1 = AlphaZeroAgent(net1, encoder, rounds_per_move=100,
+    agent1 = AlphaZeroAgent(net1, encoder, rounds_per_move=400,
                             c=1, is_self_play=False, 
                             # dirichlet_noise_intensity= 0.25,
                             # dirichlet_alpha=0.5,
                             verbose=max(args.verbose-1,0),
                             name=get_model_name(args.model1) if args.use_model_name else 'Agent1')
-    agent2 = AlphaZeroAgent(net2, encoder, rounds_per_move=100,
-                            c=1.5, is_self_play=False, 
+    agent2 = AlphaZeroAgent(net2, encoder, rounds_per_move=400,
+                            c=2, is_self_play=False, 
                             # dirichlet_noise_intensity= 0.25,
                             # dirichlet_alpha=0.5,
                             verbose=max(args.verbose-1,0),

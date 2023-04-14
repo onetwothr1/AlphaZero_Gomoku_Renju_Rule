@@ -12,34 +12,33 @@ def main():
     game = GameState.new_game(board_size)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = AlphaZeroNet(board_size)
-    model.load_model('models/alphazero 750.pt')
+    model.load_model('models/alphazero 1250.pt')
     encoder = Encoder(board_size)
 
-    rounds_per_move = 100
-    c = 1.0
+    rounds_per_move = 400
+    c = 2
     noise_intensity = 0.25
     alpha = 0.1
-    verbose = 3 # 0: none, 1: progress bar, 2: + thee-depth 3: + candidate moves
+    verbose = 3 # 0: none, 1: progress bar, 2: + tree-depth 3: + candidate moves
     bots = {
         Player.black: AlphaZeroAgent(model, encoder, rounds_per_move=rounds_per_move, 
-                                     c=c, is_self_play=False, 
-                                    #  dirichlet_noise_intensity=noise_intensity, 
-                                    #  dirichlet_alpha=alpha, 
+                                     c=1, is_self_play=True, 
+                                     dirichlet_noise_intensity=noise_intensity, 
+                                     dirichlet_alpha=alpha, 
                                     verbose=verbose),
         Player.white: AlphaZeroAgent(model, encoder, rounds_per_move=rounds_per_move, 
-                                     c=c, is_self_play=False, 
-                                    #  dirichlet_noise_intensity=noise_intensity, 
-                                    #  dirichlet_alpha=alpha, 
+                                     c=2, is_self_play=True, 
+                                     dirichlet_noise_intensity=noise_intensity, 
+                                     dirichlet_alpha=alpha, 
                                     verbose=verbose),
     }
     bot_move = None
     set_stone_color()
-    # print_board(game.board)
 
     while not game.is_over():
         # clear_screen()
         print('----------------------------')
-        print_move(game.prev_player(), bot_move, bots[game.prev_player()].name)
+        print_move(game.prev_player(), bot_move, bots[game.prev_player()].name if game.prev_player() else None)
         print_board(game.board)
 
         bot_move = bots[game.next_player].select_move(game)
