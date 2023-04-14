@@ -158,5 +158,13 @@ def save_graph_img(loss, policy_loss, value_loss, save_path):
     plt.plot(value_loss, label='value loss')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
+
+    init_loss = loss[0]
+    init_policy_loss = policy_loss[0]
+    init_value_loss = value_loss[0]
+    best_loss = min(loss)
+    best_policy_loss = min(policy_loss)
+    best_value_loss = min(value_loss)
+    plt.ytick([init_loss, init_policy_loss, init_value_loss, best_loss, best_policy_loss, best_value_loss])
     plt.legend(loc='upper right')
     plt.savefig(save_path)
