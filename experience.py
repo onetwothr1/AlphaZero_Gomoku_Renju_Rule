@@ -58,7 +58,7 @@ def augmentation(experience, board_size):
     augmented = ExperienceCollector()
     augmented.states = torch.cat(augmented_states, dim=0)
     augmented.mcts_probs = torch.cat(augmented_mcts_probs, dim=0)
-    augmented.rewards = experience.rewards.repeat(4)
+    augmented.rewards = experience.rewards.repeat(8)
     return augmented
 
 class ExperienceCollector(Dataset):

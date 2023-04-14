@@ -165,6 +165,10 @@ def save_graph_img(loss, policy_loss, value_loss, save_path):
     best_loss = min(loss)
     best_policy_loss = min(policy_loss)
     best_value_loss = min(value_loss)
-    plt.ytick([init_loss, init_policy_loss, init_value_loss, best_loss, best_policy_loss, best_value_loss])
+    plt.yticks([init_loss, init_policy_loss, init_value_loss, best_loss, best_policy_loss, best_value_loss])
+    plt.axhline(best_loss, color='gray', linestyle='--')
+    plt.axhline(best_policy_loss, color='gray', linestyle='--')
+    plt.axhline(best_value_loss, color='gray', linestyle='--')
+    
     plt.legend(loc='upper right')
     plt.savefig(save_path)
