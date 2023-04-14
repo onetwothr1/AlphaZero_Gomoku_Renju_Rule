@@ -172,3 +172,40 @@ def save_graph_img(loss, policy_loss, value_loss, save_path):
     
     plt.legend(loc='upper right')
     plt.savefig(save_path)
+
+def visualize_policy_distibution(probability_distribution, board_size=9):
+    fig, ax = plt.subplots(figsize=(6, 6))
+
+    for y in range(board_size):
+        for x in range(board_size):
+            prob = probability_distribution[y, x]
+            color = (1 - prob, 1 - prob, 1)
+            rect = plt.Rectangle((x, y), 1, 1, facecolor=color, edgecolor=None)
+            ax.add_patch(rect)
+
+    ax.set_xticks(range(board_size))
+    ax.set_yticks(range(board_size))
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+
+    ax.xaxis.tick_bottom()
+    ax.yaxis.tick_left()
+    ax.xaxis.set_ticks_position('none')
+    ax.yaxis.set_ticks_position('none')
+
+    ax.set_xlim(-0.5, board_size)
+    ax.set_ylim(0, board_size)
+    ax.set_aspect('equal')
+    plt.gca().invert_yaxis()
+
+    COLS = 'ABCDEFGHJKLMNOPQRST'
+    for i, letter in enumerate(COLS[:board_size]):
+        ax.text(i+0.5,board_size + 0.5, letter,ha='center',va='center')
+    for i in range(board_size):
+        ax.text(-0.5,board_size - 0.5-i,str(i),ha='center',va='center')
+    
+    # Remove outer border line
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    plt.show()
