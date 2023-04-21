@@ -16,7 +16,9 @@ def performance_comparison(agent1, agent2, board_size, num_games=100, winning_th
     agent2: previous agent
     '''
     agent1_win = 0
+    agent1_black_win = 0
     agent2_win = 0
+    agent2_black_win = 0
 
     agent1_avg_depth_list = []
     agent1_max_depth_list = []
@@ -32,6 +34,7 @@ def performance_comparison(agent1, agent2, board_size, num_games=100, winning_th
             winner = simulate_game(agent1, agent2, board_size, verbose)
             if winner == Player.black:
                 agent1_win += 1
+                agent1_black_win += 1
             else:
                 agent2_win += 1
         else:
@@ -40,10 +43,13 @@ def performance_comparison(agent1, agent2, board_size, num_games=100, winning_th
             winner = simulate_game(agent2, agent1, board_size, verbose)
             if winner == Player.black:
                 agent2_win += 1
+                agent2_black_win += 1
             else:
                 agent1_win += 1
         
         print("\n%s vs %s => %d : %d" %(agent1.name, agent2.name, agent1_win, agent2_win))
+        print("playing first: %s vs %s => %d : %d" %(agent1.name, agent2.name, agent1_black_win, agent2_black_win))
+        print("playing second: %s vs %s => %d : %d" %(agent1.name, agent2.name, agent1_win - agent1_black_win, agent2_win - agent2_black_win))
         
         # statistics on tree-depth
         if verbose:
@@ -64,7 +70,9 @@ def performance_comparison(agent1, agent2, board_size, num_games=100, winning_th
     print("<Comparison Finished>")
     print("\n%s vs %s => %d : %d" %(agent1.name, agent2.name, agent1_win, agent2_win))
     print('p-value %f' %(p_val))
-
+    print("playing first: %s vs %s => %d : %d" %(agent1.name, agent2.name, agent1_black_win, agent2_black_win))
+    print("playing second: %s vs %s => %d : %d" %(agent1.name, agent2.name, agent1_win - agent1_black_win, agent2_win - agent2_black_win))
+        
     print_tree_depth_statistics(agent1.name,
                                 agent1_avg_depth_list,
                                 agent1_max_depth_list,
