@@ -1,4 +1,6 @@
 import torch
+from IPython.display import clear_output
+import os
 
 from agent import *
 from net.alphazero_net import AlphaZeroNet
@@ -11,24 +13,29 @@ def main():
     board_size = 9
     game = GameState.new_game(board_size)
     model = AlphaZeroNet(board_size)
-    model.load_model('models/alphazero 1250.pt')
+    model.load_model('models/alphazero 2250.pt')
     encoder = Encoder(board_size)
     bot = AlphaZeroAgent(model, encoder, 
-                        rounds_per_move=100, c=1, 
-                        is_self_play=False, 
-                        dirichlet_noise_intensity=0.2, 
-                        dirichlet_alpha=5, 
-                        verbose=3)
+                        rounds_per_move=400, c=2, 
+                        is_self_play=False)
     move = None
-    set_stone_color()
+    # set_stone_color()
+    print("Do you want to go first (1) or second (2)?")
+    human_turn = int(input())
 
+    if human_turn==1:
+      turn = {'human' : Player.black}
+    elif human_turn==2:
+      turn = {'human' : Player.white}
+      
     while not game.is_over():
         # clear_screen()
+        clear_output(wait=True)
         print('----------------------------')
         print_move(game.prev_player(), move)
         print_board(game.board)
 
-        if game.next_player == Player.black:
+        if game.next_player == turn['human']:
             human_input = input('-- ')
             move = handle_input(human_input, game, board_size)
             while move is None:
@@ -38,7 +45,8 @@ def main():
             move = bot.select_move(game)
         game = game.apply_move(move)
 
-    clear_screen()
+    # clear_screen()
+    clear_output(wait=True)
     print('----------------------------')
     print_move(game.prev_player(), move)
     print_board(game.board)
