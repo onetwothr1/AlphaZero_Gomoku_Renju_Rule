@@ -4,7 +4,7 @@ from tqdm import tqdm
 import random
 from agent import Agent
 from board import NoPossibleMove
-from utils import coords_from_point
+from utils import coords_from_point, visualize_policy_distibution
 
 class Branch:
     def __init__(self, prior):
@@ -19,6 +19,7 @@ class AlphaZeroTreeNode:
         self.state = state
         self.value = value
         self.parent = parent
+        self.priors = priors
         self.last_move = last_move
         self.total_visit_count = 1
         self.branches = {}
@@ -52,6 +53,9 @@ class AlphaZeroTreeNode:
     
     def initial_value(self, move):
         return self.branches[move].initial_value
+
+    def total_value(self, move):
+        return self.branches[move].total_value
     
     def visit_count(self, move):
         if move in self.branches:
@@ -152,13 +156,20 @@ class AlphaZeroAgent(Agent):
             # if a candidate move has never been visited, it can not show the move's value. 
             for top_move in sorted(root.moves(), key=root.visit_count, reverse=True)[:10]:
                 print(coords_from_point(top_move),
-                      '    visit %3d  prior %.3f  value %s'
-                        %(root.visit_count(top_move), root.prior(top_move), 
-                          '%.2f'%(root.initial_value(top_move)) if root.initial_value(top_move) else '???'))
+                      '    visit %3d  prior %.3f  value %s  total value %.2f'
+                        %(root.visit_count(top_move), 
+                          root.prior(top_move), 
+                          '%5.2f'%(root.initial_value(top_move)) if root.initial_value(top_move) else '???',
+                          root.total_value(top_move)
+                          )
+                    )
 
         most_visit_move = max(root.moves(), key=root.visit_count)
         max_visit = root.visit_count(most_visit_move)
         max_tie_list = [move for move in root.moves() if root.visit_count(move)==max_visit]
+
+        # visualize_policy_distibution(list(root.priors.values()), game_state)
+
         return random.choice(max_tie_list)
 
     def set_collector(self, collector):

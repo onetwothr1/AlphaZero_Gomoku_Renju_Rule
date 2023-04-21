@@ -79,7 +79,6 @@ def main():
     parser.add_argument('--c', '-c', type=float)
     parser.add_argument('--noise-intensity', type=float)
     parser.add_argument('--alpha', type=float)
-    parser.add_argument('--reward-decay', type=float, default=0.92)
     parser.add_argument('--verbose', type=int, default=0) # 0: none, 1: show play, 2: + progress bar, 3: + thee-depth, 4: + candidate moves
     args = parser.parse_args()
 
@@ -101,7 +100,7 @@ def main():
     # below code makes while-loop be able to use 'tqdm' progress bar
     for _ in tqdm(self_play_simulation(agent1, agent2, args.num_games, 
                                        save_path(args.model, args.num_games, args.file_num), 
-                                       args.board_size, args.reward_decay, args.verbose), 
+                                       args.board_size, args.verbose), 
                 total=args.num_games): pass
     time_elapsed = time.time() - start
 

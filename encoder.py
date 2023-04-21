@@ -4,9 +4,9 @@ import torch
 from board import Point
 
 # plane 0: empty points
-# plane 1: my points
-# plane 2: enemy's points
-# plane 3: forbidden moves (if player is White, the plane is empty)
+# plane 1: my stones
+# plane 2: enemy's stones
+# plane 3: forbidden moves (if player is White, this plane is empty)
 
 class Encoder():
     def __init__(self, board_size):

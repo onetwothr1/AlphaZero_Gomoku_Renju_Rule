@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 from numpy import average
 import platform
 import subprocess
@@ -6,6 +7,7 @@ import enum
 
 from board import Point, GameState
 from player import Player
+from encoder import Encoder
 
 COLS = 'ABCDEFGHJKLMNOPQRST'
 
@@ -48,30 +50,30 @@ def print_move(player, move, player_name=None):
 
 
 def print_board(board):
-    # for row in range(board.board_size-1, -1, -1):
-    #     line = []
-    #     for col in range(board.board_size):
-    #         stone = board.get(Point(row=row, col=col))
-    #         if stone==0:
-    #             line.append(' ')
-    #         elif stone==Player.black:
-    #             line.append(StoneIcon.black)
-    #         elif stone==Player.white:
-    #             line.append(StoneIcon.white)
-    #     print(' %d %s' % (row, ' '.join(line)))
-    # print('   ' + ' '.join(COLS[:board.board_size]))
     for row in range(board.board_size-1, -1, -1):
         line = []
         for col in range(board.board_size):
             stone = board.get(Point(row=row, col=col))
             if stone==0:
-                line.append('  ')
+                line.append(' ')
             elif stone==Player.black:
                 line.append(StoneIcon.black)
             elif stone==Player.white:
                 line.append(StoneIcon.white)
-        print(' %d %s' % (row, ''.join(line)))
+        print(' %d %s' % (row, ' '.join(line)))
     print('   ' + ' '.join(COLS[:board.board_size]))
+    # for row in range(board.board_size-1, -1, -1):
+    #     line = []
+    #     for col in range(board.board_size):
+    #         stone = board.get(Point(row=row, col=col))
+    #         if stone==0:
+    #             line.append('  ')
+    #         elif stone==Player.black:
+    #             line.append(StoneIcon.black)
+    #         elif stone==Player.white:
+    #             line.append(StoneIcon.white)
+    #     print(' %d %s' % (row, ''.join(line)))
+    # print('   ' + ' '.join(COLS[:board.board_size]))
 
 def handle_input(_input, game: GameState, board_size):
     point = point_from_coords(_input.strip(), board_size)
@@ -173,15 +175,25 @@ def save_graph_img(loss, policy_loss, value_loss, save_path):
     plt.legend(loc='upper right')
     plt.savefig(save_path)
 
-def visualize_policy_distibution(probability_distribution, board_size=9):
+def visualize_policy_distibution(probability_distribution, game_state):
+    board = game_state.board
+    board_size = board.board_size
     fig, ax = plt.subplots(figsize=(6, 6))
 
     for y in range(board_size):
         for x in range(board_size):
-            prob = probability_distribution[y, x]
-            color = (1 - prob, 1 - prob, 1)
-            rect = plt.Rectangle((x, y), 1, 1, facecolor=color, edgecolor=None)
+            prob = probability_distribution[y * board_size +  x]
+            normalized_prob = np.sqrt(prob)
+            color = (1 - normalized_prob, 1 - normalized_prob, 1)
+            rect = plt.Rectangle((x, board_size - 1 - y), 1, 1, facecolor=color, edgecolor='grey', linewidth=0.3)
             ax.add_patch(rect)
+
+            if board.get(Point(x,y))==Player.black:
+                ax.text(y+0.5, board_size-x-0.5, '●', ha='center',va='center', fontsize=25, color='black')
+            elif board.get(Point(x,y))==Player.white:
+                ax.text(y+0.5, board_size-x-0.5, '○', ha='center',va='center', fontsize=25, color='black')
+    for move in game_state.forbidden_moves():
+        ax.text(move.col + 0.5, board_size-move.row - 0.5, 'X', ha='center',va='center', fontsize=25, color='black')
 
     ax.set_xticks(range(board_size))
     ax.set_yticks(range(board_size))

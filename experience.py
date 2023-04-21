@@ -62,14 +62,14 @@ def augmentation(experience, board_size):
     return augmented
 
 class ExperienceCollector(Dataset):
-    def __init__(self, board_size=9, num_encoded_plane=4, reward_decay=0.92):
+    def __init__(self, board_size=9, num_encoded_plane=4):
         self.states = [] # encoded tensor of board
         self.rewards = [] # 1 or -1
         self.mcts_probs = []
         self.board_size = board_size
         self.num_encoded_plane = num_encoded_plane
-        self.decay = reward_decay # reward decay
-        
+        self.reward_decay = 0.95 ** 2
+
         self.current_episode_states = []
         self.current_episode_mcts_probs = []
     
@@ -80,7 +80,10 @@ class ExperienceCollector(Dataset):
     def complete_episode(self, reward):
         num_states = len(self.current_episode_states)
         self.states += self.current_episode_states
-        self.rewards += [reward * (self.decay ** i) for i in range(num_states-1, -1, -1)]
+        if reward == 1:
+            self.rewards += [reward * (self.reward_decay ** i) for i in range(num_states-1, -1, -1)]
+        elif reward == -1:
+            self.rewards += [reward * 0.95 * (self.reward_decay ** i) for i in range(num_states-1, -1, -1)]
         self.mcts_probs += self.current_episode_mcts_probs
         
         self.current_episode_states = []

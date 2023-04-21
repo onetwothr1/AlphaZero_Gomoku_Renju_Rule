@@ -12,17 +12,17 @@ def main():
     game = GameState.new_game(board_size)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = AlphaZeroNet(board_size)
-    model.load_model('models/alphazero 1250.pt')
+    model.load_model('models/alphazero 2250.pt')
     encoder = Encoder(board_size)
 
-    rounds_per_move = 400
+    rounds_per_move = 100
     c = 2
     noise_intensity = 0.25
-    alpha = 0.1
+    alpha = 0.2
     verbose = 3 # 0: none, 1: progress bar, 2: + tree-depth 3: + candidate moves
     bots = {
         Player.black: AlphaZeroAgent(model, encoder, rounds_per_move=rounds_per_move, 
-                                     c=1, is_self_play=True, 
+                                     c=2, is_self_play=True, 
                                      dirichlet_noise_intensity=noise_intensity, 
                                      dirichlet_alpha=alpha, 
                                     verbose=verbose),
@@ -33,7 +33,8 @@ def main():
                                     verbose=verbose),
     }
     bot_move = None
-    set_stone_color()
+    # set_stone_color()
+    StoneIcon.change()
 
     while not game.is_over():
         # clear_screen()
