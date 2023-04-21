@@ -43,6 +43,8 @@ def performance_comparison(agent1, agent2, board_size, num_games=100, winning_th
             else:
                 agent1_win += 1
         
+        print("\n%s vs %s => %d : %d" %(agent1.name, agent2.name, agent1_win, agent2_win))
+        
         # statistics on tree-depth
         if verbose:
             print()
@@ -105,5 +107,5 @@ if __name__=='__main__':
                             # dirichlet_alpha=0.5,
                             verbose=max(args.verbose-1,0),
                             name=get_model_name(args.model2) if args.use_model_name else 'Agent2')
-    set_stone_color()
+    # set_stone_color()
     performance_comparison(agent1, agent2, board_size, num_games=args.num_games, verbose=True)
