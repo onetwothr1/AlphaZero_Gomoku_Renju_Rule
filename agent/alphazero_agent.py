@@ -181,19 +181,6 @@ class AlphaZeroAgent(Agent):
         # If only moves left are forbidden moves
         if len(root.moves()) == 0:
             return NoPossibleMove()
-        
-        # Record on experience collrector
-        if self.collector is not None:
-            # print("Record on experience")
-            root_state_tensor = self.encoder.encode_board(game_state)
-            visit_counts = np.array([
-                root.visit_count(
-                    self.encoder.decode_move_index(idx))
-                for idx in range(self.encoder.num_moves())
-            ])
-            mcts_prob = visit_counts / np.sum(visit_counts)
-            self.collector.record_decision(
-                root_state_tensor, mcts_prob)
 
         # Select a move
         if self.verbose >= 3:
@@ -212,10 +199,23 @@ class AlphaZeroAgent(Agent):
         most_visit_move = max(root.moves(), key=root.visit_count)
         max_visit = root.visit_count(most_visit_move)
         max_tie_list = [move for move in root.moves() if root.visit_count(move)==max_visit]
+        next_move = random.choice(max_tie_list)
 
         # visualize_policy_distibution(list(root.priors.values()), game_state)
 
-        return random.choice(max_tie_list)
+        # Record on experience collrector
+        if self.collector is not None:
+            root_state_tensor = self.encoder.encode_board(game_state)
+            visit_counts = np.array([
+                root.visit_count(
+                    self.encoder.decode_move_index(idx))
+                for idx in range(self.encoder.num_moves())
+            ])
+            mcts_prob = visit_counts / np.sum(visit_counts)
+            self.collector.record_decision(
+                root_state_tensor, mcts_prob, -1 * root.expected_value(next_move))
+
+        return next_move
 
     def set_collector(self, collector):
         self.collector = collector

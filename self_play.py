@@ -63,7 +63,10 @@ def self_play_simulation(agent1, agent2, num_games, save_path, board_size, verbo
             i += 1
             yield # for using tqdm
         else:
-            pass
+            collector1.complete_episode(reward=0)
+            collector2.complete_episode(reward=0)
+            i += 1
+            yield # for using tqdm
 
     experience = combine_experience(collector1, collector2)
     experience.save_experience(save_path)

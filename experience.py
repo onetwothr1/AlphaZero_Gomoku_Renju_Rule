@@ -71,27 +71,39 @@ class ExperienceCollector(Dataset):
         self.reward_decay = 0.95 ** 2
 
         self.current_episode_states = []
+        self.current_episode_expected_values = []
         self.current_episode_mcts_probs = []
+        
     
     def begin_episode(self):
         self.current_episode_states = []
+        self.current_episode_expected_values = []
         self.current_episode_mcts_probs = []
 
     def complete_episode(self, reward):
+        if reward==0: # board is full. cut a few last moves, since, after some point, game becomes meaningless.
+            self.current_episode_states = self.current_episode_states[:-8]
+            self.current_episode_expected_values = self.current_episode_expected_values[:-8]
+            self.current_episode_mcts_probs = self.current_episode_mcts_probs[:-8]
+
         num_states = len(self.current_episode_states)
         self.states += self.current_episode_states
         if reward == 1:
             self.rewards += [reward * (self.reward_decay ** i) for i in range(num_states-1, -1, -1)]
         elif reward == -1:
             self.rewards += [reward * 0.95 * (self.reward_decay ** i) for i in range(num_states-1, -1, -1)]
+        elif reward == 0:
+            self.rewards = self.current_episode_expected_values
         self.mcts_probs += self.current_episode_mcts_probs
         
         self.current_episode_states = []
+        self.current_episode_expected_values = []
         self.current_episode_mcts_probs = []
     
-    def record_decision(self, state, mcts_prob):
+    def record_decision(self, state, mcts_prob, value):
         self.current_episode_states.append(state)
         self.current_episode_mcts_probs.append(mcts_prob)
+        self.current_episode_expected_values.append(value)
 
     def save_experience(self, save_path):
         with open(save_path, 'wb') as f:
