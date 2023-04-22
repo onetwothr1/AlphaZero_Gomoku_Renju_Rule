@@ -50,30 +50,30 @@ def print_move(player, move, player_name=None):
 
 
 def print_board(board):
-    for row in range(board.board_size-1, -1, -1):
-        line = []
-        for col in range(board.board_size):
-            stone = board.get(Point(row=row, col=col))
-            if stone==0:
-                line.append(' ')
-            elif stone==Player.black:
-                line.append(StoneIcon.black)
-            elif stone==Player.white:
-                line.append(StoneIcon.white)
-        print(' %d %s' % (row, ' '.join(line)))
-    print('   ' + ' '.join(COLS[:board.board_size]))
     # for row in range(board.board_size-1, -1, -1):
     #     line = []
     #     for col in range(board.board_size):
     #         stone = board.get(Point(row=row, col=col))
     #         if stone==0:
-    #             line.append('  ')
+    #             line.append(' ')
     #         elif stone==Player.black:
     #             line.append(StoneIcon.black)
     #         elif stone==Player.white:
     #             line.append(StoneIcon.white)
-    #     print(' %d %s' % (row, ''.join(line)))
+    #     print(' %d %s' % (row, ' '.join(line)))
     # print('   ' + ' '.join(COLS[:board.board_size]))
+    for row in range(board.board_size-1, -1, -1):
+        line = []
+        for col in range(board.board_size):
+            stone = board.get(Point(row=row, col=col))
+            if stone==0:
+                line.append('  ')
+            elif stone==Player.black:
+                line.append(StoneIcon.black)
+            elif stone==Player.white:
+                line.append(StoneIcon.white)
+        print(' %d %s' % (row, ''.join(line)))
+    print('   ' + ' '.join(COLS[:board.board_size]))
 
 def handle_input(_input, game: GameState, board_size):
     point = point_from_coords(_input.strip(), board_size)

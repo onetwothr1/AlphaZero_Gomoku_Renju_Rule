@@ -45,31 +45,24 @@ class Board():
 
 
 class GameState():
-    def __init__(self, board, next_player, previous, move):
+    def __init__(self, board, next_player, previous, move, turn_cnt):
         self.board = board
         self.next_player = next_player
         self.previous_state = previous
         self.last_move = move
         self.rule = Renju_Rule(self.board)
+        self.turn_cnt = turn_cnt
+        self.winner = None
         self.win_by_forcing_forbidden_move = False
 
     def apply_move(self, move):
-        import utils
         if isinstance(move, NoPossibleMove):
             self.win_by_forcing_forbidden_move = True
             self.winner = self.prev_player()
             return self
-        # print('before board')
-        # utils.print_board(self.board)
         next_board = copy.deepcopy(self.board)
-        # print('after copy')
-        # utils.print_board(next_board)
-
         next_board.place_stone(self.next_player, move)
-        # print('after place stone')
-        # utils.print_board(next_board)
-
-        return GameState(next_board, self.next_player.other, self, move)
+        return GameState(next_board, self.next_player.other, self, move, self.turn_cnt+1)
 
     # one-man play. for checking applied rules.
     def apply_move_test(self, move):
@@ -79,7 +72,7 @@ class GameState():
 
     def new_game(board_size: int):
         board = Board(board_size)
-        return GameState(board, Player.black, None, None)
+        return GameState(board, Player.black, None, None, 0)
 
     # for board_test, playing on white
     def new_game_test(board_size: int):

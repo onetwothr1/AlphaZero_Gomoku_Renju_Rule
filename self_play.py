@@ -39,9 +39,9 @@ def simulate_game(black_player, white_player, board_size, verbose=False):
     return game.winner
 
 
-def self_play_simulation(agent1, agent2, num_games, save_path, board_size, reward_decay, verbose=False):
-    collector1 = ExperienceCollector(reward_decay=reward_decay)
-    collector2 = ExperienceCollector(reward_decay=reward_decay)
+def self_play_simulation(agent1, agent2, num_games, save_path, board_size, verbose=False):
+    collector1 = ExperienceCollector()
+    collector2 = ExperienceCollector()
     agent1.set_collector(collector1)
     agent2.set_collector(collector2)
 

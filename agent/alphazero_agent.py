@@ -89,11 +89,15 @@ class AlphaZeroAgent(Agent):
         # Tree Search
         root = self.create_node(game_state)
         depth_cnt_list = []
-        for _ in tqdm(range(self.num_rounds), disable=np.True_):
+        search_cnt = 0
+        additional_search = 0
+        lose_expected = False
+        while True:
             # Walking down the tree
             depth_cnt = 1
             node = root
             next_move = self.select_branch(node)
+            candidate_move = next_move
             while node.has_child(next_move):
                 node = node.get_child(next_move)
                 next_move = self.select_branch(node)
@@ -123,7 +127,34 @@ class AlphaZeroAgent(Agent):
                 node.record_visit(move, value)
                 move = node.last_move
                 node = node.parent
-                value = -1 * self.reward_decay * value
+                if value==1 and new_state.prev_player()==game_state.next_player.other:
+                    # when enemy wins, decrease the impact of reward decay to make the agent focus more on defense.
+                    reward_decay = 0.99
+                    candidate_move.lose_expected += 1
+                    lose_expected = True
+                else:
+                    reward_decay = self.reward_decay
+                value = -1 * reward_decay * value
+
+            # end tree searching
+            search_cnt += 1
+            if search_cnt == self.num_rounds:
+                # if most visited move and second's visit count are close, try more search
+                if len(root.moves()) < 2:
+                    break
+                if game_state.turn_cnt <= 8:
+                    break
+                if additional_search >= 3:
+                    break
+                sorted_moves = sorted(root.moves(), key=root.visit_count, reverse=True)
+                most_visit_move = sorted_moves[0]
+                second_visit_move = sorted_moves[1]
+                if root.visit_count(most_visit_move) <= root.visit_count(second_visit_move) + 15:                
+                    search_cnt -= 200
+                    additional_search += 1
+                    print('additional search')
+                else:
+                    break
         
         # Statistics on tree-depth
         avg_depth = sum(depth_cnt_list) / len(depth_cnt_list)
@@ -156,14 +187,15 @@ class AlphaZeroAgent(Agent):
             # if a candidate move has never been visited, it can not show the move's value. 
             for top_move in sorted(root.moves(), key=root.visit_count, reverse=True)[:10]:
                 print(coords_from_point(top_move),
-                      '    visit %3d  prior %.3f  value %s  total value %.2f'
+                      '    visit %3d  p %.3f  v %s  exp_v %5.2f'
                         %(root.visit_count(top_move), 
                           root.prior(top_move), 
                           '%5.2f'%(root.initial_value(top_move)) if root.initial_value(top_move) else '???',
-                          root.total_value(top_move)
+                          root.expected_value(top_move)
                           )
                     )
-
+        if lose_expected:
+            print("lose expected")
         most_visit_move = max(root.moves(), key=root.visit_count)
         max_visit = root.visit_count(most_visit_move)
         max_tie_list = [move for move in root.moves() if root.visit_count(move)==max_visit]
