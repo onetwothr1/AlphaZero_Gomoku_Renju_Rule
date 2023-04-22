@@ -167,21 +167,13 @@ class AlphaZeroAgent(Agent):
                     additional_search += 1
                     print('additional search')
                 else:
-                    self.c = original_c
                     break
+        self.c = original_c
         
-        # Statistics on tree-depth
-        avg_depth = sum(depth_cnt_list) / len(depth_cnt_list)
-        max_depth = max(depth_cnt_list)
-        self.avg_depth_list.append(avg_depth)
-        self.max_depth_list.append(max_depth)
-        if self.verbose >= 2:
-            print('average depth: %.2f, max depth: %d' %(avg_depth, max_depth))
-
         # If only moves left are forbidden moves
         if len(root.moves()) == 0:
             return NoPossibleMove()
-
+        
         # Select a move
         if self.verbose >= 3:
             # print candidate moves with there visit count and output of policy net and value net.
@@ -201,8 +193,6 @@ class AlphaZeroAgent(Agent):
         max_tie_list = [move for move in root.moves() if root.visit_count(move)==max_visit]
         next_move = random.choice(max_tie_list)
 
-        # visualize_policy_distibution(list(root.priors.values()), game_state)
-
         # Record on experience collrector
         if self.collector is not None:
             root_state_tensor = self.encoder.encode_board(game_state)
@@ -214,6 +204,16 @@ class AlphaZeroAgent(Agent):
             mcts_prob = visit_counts / np.sum(visit_counts)
             self.collector.record_decision(
                 root_state_tensor, mcts_prob, -1 * root.expected_value(next_move))
+
+        # Statistics on tree-depth
+        avg_depth = sum(depth_cnt_list) / len(depth_cnt_list)
+        max_depth = max(depth_cnt_list)
+        self.avg_depth_list.append(avg_depth)
+        self.max_depth_list.append(max_depth)
+        if self.verbose >= 2:
+            print('average depth: %.2f, max depth: %d' %(avg_depth, max_depth))
+
+        # visualize_policy_distibution(list(root.priors.values()), game_state)
 
         return next_move
 
