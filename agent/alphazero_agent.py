@@ -151,13 +151,13 @@ class AlphaZeroAgent(Agent):
                     break
                 if game_state.turn_cnt <= 8:
                     break
-                if additional_search >= 4:
+                if additional_search >= 3:
                     break
                 sorted_moves = sorted(root.moves(), key=root.visit_count, reverse=True)
                 most_visit_move = sorted_moves[0]
                 second_visit_move = sorted_moves[1]
-                if root.loss_predicted(most_visit_move) / root.visit_count(most_visit_move) > 0.3:
-                    self.c /= 3
+                if root.loss_predicted(most_visit_move) / root.visit_count(most_visit_move) > 0.2:
+                    self.c /= 2
                     search_cnt -= 200
                     additional_search += 1
                     # 높은 확률로 패배 예상됨 영어로 뭐라하지
