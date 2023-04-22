@@ -13,6 +13,7 @@ class Branch:
                                   # we can get this value after branching the node.
         self.visit_count = 0
         self.total_value = 0.0
+        self.loss_predicted = 0
 
 class AlphaZeroTreeNode:
     def __init__(self, state, value, priors, parent, last_move):
@@ -57,6 +58,12 @@ class AlphaZeroTreeNode:
     def total_value(self, move):
         return self.branches[move].total_value
     
+    def increase_loss_predicted(self, move):
+        self.branches[move].loss_predicted += 1
+
+    def loss_predicted(self, move):
+        return self.branches[move].loss_predicted
+    
     def visit_count(self, move):
         if move in self.branches:
             return self.branches[move].visit_count
@@ -91,13 +98,14 @@ class AlphaZeroAgent(Agent):
         depth_cnt_list = []
         search_cnt = 0
         additional_search = 0
-        lose_expected = False
+        original_c = self.c
+
         while True:
             # Walking down the tree
             depth_cnt = 1
             node = root
             next_move = self.select_branch(node)
-            candidate_move = next_move
+            root_child_move = next_move
             while node.has_child(next_move):
                 node = node.get_child(next_move)
                 next_move = self.select_branch(node)
@@ -130,8 +138,7 @@ class AlphaZeroAgent(Agent):
                 if value==1 and new_state.prev_player()==game_state.next_player.other:
                     # when enemy wins, decrease the impact of reward decay to make the agent focus more on defense.
                     reward_decay = 0.99
-                    candidate_move.lose_expected += 1
-                    lose_expected = True
+                    root.increase_loss_predicted(root_child_move)
                 else:
                     reward_decay = self.reward_decay
                 value = -1 * reward_decay * value
@@ -139,21 +146,28 @@ class AlphaZeroAgent(Agent):
             # end tree searching
             search_cnt += 1
             if search_cnt == self.num_rounds:
-                # if most visited move and second's visit count are close, try more search
+                # if most visited move and second's visit count are closs, try more search
                 if len(root.moves()) < 2:
                     break
                 if game_state.turn_cnt <= 8:
                     break
-                if additional_search >= 3:
+                if additional_search >= 4:
                     break
                 sorted_moves = sorted(root.moves(), key=root.visit_count, reverse=True)
                 most_visit_move = sorted_moves[0]
                 second_visit_move = sorted_moves[1]
-                if root.visit_count(most_visit_move) <= root.visit_count(second_visit_move) + 15:                
+                if root.loss_predicted(most_visit_move) / root.visit_count(most_visit_move) > 0.3:
+                    self.c /= 3
+                    search_cnt -= 200
+                    additional_search += 1
+                    # 높은 확률로 패배 예상됨 영어로 뭐라하지
+                    print("too many loss predicted. additional search")
+                elif root.visit_count(most_visit_move) <= root.visit_count(second_visit_move) + 15:                
                     search_cnt -= 200
                     additional_search += 1
                     print('additional search')
                 else:
+                    self.c = original_c
                     break
         
         # Statistics on tree-depth
@@ -185,17 +199,16 @@ class AlphaZeroAgent(Agent):
         if self.verbose >= 3:
             # print candidate moves with there visit count and output of policy net and value net.
             # if a candidate move has never been visited, it can not show the move's value. 
-            for top_move in sorted(root.moves(), key=root.visit_count, reverse=True)[:10]:
-                print(coords_from_point(top_move),
-                      '    visit %3d  p %.3f  v %s  exp_v %5.2f'
-                        %(root.visit_count(top_move), 
-                          root.prior(top_move), 
-                          '%5.2f'%(root.initial_value(top_move)) if root.initial_value(top_move) else '???',
-                          root.expected_value(top_move)
+            for candidate_move in sorted(root.moves(), key=root.visit_count, reverse=True)[:10]:
+                print(coords_from_point(candidate_move),
+                      '    visit %3d  p %.3f  v %s  exp_v %5.2f  loss %d'
+                        %(root.visit_count(candidate_move), 
+                          root.prior(candidate_move), 
+                          '%5.2f'%(root.initial_value(candidate_move)) if root.initial_value(candidate_move) else '???',
+                          root.expected_value(candidate_move),
+                          root.loss_predicted(candidate_move)
                           )
                     )
-        if lose_expected:
-            print("lose expected")
         most_visit_move = max(root.moves(), key=root.visit_count)
         max_visit = root.visit_count(most_visit_move)
         max_tie_list = [move for move in root.moves() if root.visit_count(move)==max_visit]
