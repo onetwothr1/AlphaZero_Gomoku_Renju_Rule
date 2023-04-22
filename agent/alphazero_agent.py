@@ -146,10 +146,10 @@ class AlphaZeroAgent(Agent):
             # end tree searching
             search_cnt += 1
             if search_cnt == self.num_rounds:
-                # if most visited move and second's visit count are closs, try more search
+                # if most visited move and second's visit count are close, try more search
                 if len(root.moves()) < 2:
                     break
-                if game_state.turn_cnt <= 8:
+                if game_state.turn_cnt < 8:
                     break
                 if additional_search >= 3:
                     break
