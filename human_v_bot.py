@@ -2,6 +2,9 @@ import torch
 from IPython.display import clear_output
 import os
 import argparse
+import threading
+import time
+from queue import Queue
 
 from agent import *
 from net.alphazero_net import AlphaZeroNet
@@ -14,7 +17,7 @@ def main(verbose):
     board_size = 9
     game = GameState.new_game(board_size)
     model = AlphaZeroNet(board_size)
-    model.load_model('models/alphazero 2000 91 new.pt')
+    model.load_model('models/alphazero 2250 91.pt')
     encoder = Encoder(board_size)
     bot = AlphaZeroAgent(model, encoder, 
                         rounds_per_move=400, c=2.5, 
@@ -38,13 +41,20 @@ def main(verbose):
         print_board(game.board)
 
         if game.next_player == turn['human']:
-            human_input = input('-- ')
+            human_input = input('Your move: ')
             move = handle_input(human_input, game, board_size)
             while move is None:
-                human_input = input('-- ')
+                human_input = input('Your move: ')
                 move = handle_input(human_input, game, board_size)
         else:
-            move = bot.select_move(game)
+            print("AI is playing..", end="")
+            q = Queue()
+            thread = threading.Thread(target=bot.select_move, args=(game, q))
+            thread.start()
+            while thread.is_alive():
+                time.sleep(3)
+                print(".", end="", flush=True)
+            move = q.get()
         game = game.apply_move(move)
 
     # clear_screen()

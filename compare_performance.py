@@ -104,13 +104,13 @@ if __name__=='__main__':
     net2.load_model(args.model2)
     encoder = Encoder(board_size)
     agent1 = AlphaZeroAgent(net1, encoder, rounds_per_move=400,
-                            c=2, is_self_play=False, 
+                            c=2.5, is_self_play=False, 
                             # dirichlet_noise_intensity= 0.25,
                             # dirichlet_alpha=0.5,
                             verbose=max(args.verbose-1,0),
                             name=get_model_name(args.model1) if args.use_model_name else 'Agent1')
     agent2 = AlphaZeroAgent(net2, encoder, rounds_per_move=400,
-                            c=2, is_self_play=False, 
+                            c=2.5, is_self_play=False, 
                             # dirichlet_noise_intensity= 0.25,
                             # dirichlet_alpha=0.5,
                             verbose=max(args.verbose-1,0),

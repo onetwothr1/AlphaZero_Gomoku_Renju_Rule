@@ -1,3 +1,4 @@
+from numpy.lib.type_check import nan_to_num
 import torch
 import numpy as np
 from tqdm import tqdm
@@ -62,7 +63,9 @@ class AlphaZeroTreeNode:
         self.branches[move].loss_predicted += 1
 
     def loss_predicted(self, move):
-        return self.branches[move].loss_predicted
+        if move in self.branches:
+            return self.branches[move].loss_predicted
+        return 0
     
     def visit_count(self, move):
         if move in self.branches:
@@ -92,7 +95,7 @@ class AlphaZeroAgent(Agent):
         self.avg_depth_list = [] # average of tree-depth in MCTS
         self.max_depth_list = [] # max tree-depth per each move
     
-    def select_move(self, game_state):
+    def select_move(self, game_state, thread_queue=None):
         # Tree Search
         root = self.create_node(game_state)
         depth_cnt_list = []
@@ -157,11 +160,11 @@ class AlphaZeroAgent(Agent):
                 most_visit_move = sorted_moves[0]
                 second_visit_move = sorted_moves[1]
                 if root.loss_predicted(most_visit_move) / root.visit_count(most_visit_move) > 0.2:
-                    self.c /= 2
+                    self.c /= 3
                     search_cnt -= 200
                     additional_search += 1
                     # 높은 확률로 패배 예상됨 영어로 뭐라하지
-                    print("too many loss predicted. additional search")
+                    print("A high probability of defeat is expected. additional search")
                 elif root.visit_count(most_visit_move) <= root.visit_count(second_visit_move) + 15:                
                     search_cnt -= 200
                     additional_search += 1
@@ -196,9 +199,10 @@ class AlphaZeroAgent(Agent):
         # Record on experience collrector
         if self.collector is not None:
             root_state_tensor = self.encoder.encode_board(game_state)
+            # Subtract the expected number of defeats from the number of visits
             visit_counts = np.array([
-                root.visit_count(
-                    self.encoder.decode_move_index(idx))
+                root.visit_count(self.encoder.decode_move_index(idx))
+                - root.loss_predicted(self.encoder.decode_move_index(idx))
                 for idx in range(self.encoder.num_moves())
             ])
             mcts_prob = visit_counts / np.sum(visit_counts)
@@ -214,7 +218,8 @@ class AlphaZeroAgent(Agent):
             print('average depth: %.2f, max depth: %d' %(avg_depth, max_depth))
 
         # visualize_policy_distibution(list(root.priors.values()), game_state)
-
+        if thread_queue:
+          thread_queue.put(next_move)
         return next_move
 
     def set_collector(self, collector):

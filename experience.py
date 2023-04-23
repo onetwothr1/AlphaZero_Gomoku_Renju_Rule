@@ -22,7 +22,8 @@ def combine_saved_experiences(saved_experiences: list, save_path):
         print(experience)
         collector = ExperienceCollector()
         collector.load_experience(experience)
-        collector.to_tensor()
+        if not isinstance(collector.rewards, torch.Tensor):
+          collector.to_tensor()
         print(len(collector))
         states_list.append(collector.states)
         rewards_list.append(torch.tensor(collector.rewards))
@@ -93,7 +94,7 @@ class ExperienceCollector(Dataset):
         elif reward == -1:
             self.rewards += [reward * 0.95 * (self.reward_decay ** i) for i in range(num_states-1, -1, -1)]
         elif reward == 0:
-            self.rewards = self.current_episode_expected_values
+            self.rewards += self.current_episode_expected_values
         self.mcts_probs += self.current_episode_mcts_probs
         
         self.current_episode_states = []
