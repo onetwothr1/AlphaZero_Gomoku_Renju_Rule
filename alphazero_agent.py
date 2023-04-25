@@ -226,7 +226,7 @@ class AlphaZeroAgent():
             # if a candidate move has never been visited, it can not show the move's value. 
             for candidate_move in sorted(root.moves(), key=root.visit_count, reverse=True)[:10]:
                 print(coords_from_point(candidate_move),
-                      '   visit %3d  p %.3f  v %s  exp_v %5.2f  loss %3d  defense %d  max_depth %d'
+                      '   visit %3d  p %.3f  v %s  exp_v %5.2f  loss %3d  defense %3d  max_depth %d'
                         %(root.visit_count(candidate_move),
                           root.prior(candidate_move),
                           '%5.2f'%(root.initial_value(candidate_move)) if root.initial_value(candidate_move) else '???',
