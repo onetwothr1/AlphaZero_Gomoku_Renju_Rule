@@ -1,11 +1,10 @@
 import argparse
 from tqdm import tqdm
-import torch
 from scipy.stats import binomtest
 
 from self_play import simulate_game
-from agent import *
-from net.alphazero_net import AlphaZeroNet
+from alphazero_agent import AlphaZeroAgent
+from alphazero_net import AlphaZeroNet
 from encoder import Encoder
 from player import Player
 from utils import *
@@ -26,11 +25,9 @@ def performance_comparison(agent1, agent2, board_size, num_games=100, winning_th
     agent2_max_depth_list = []
 
     for i in tqdm(range(num_games)):
-        if verbose:
-            print("\n\n////////  %dth Game  ////////" %(i+1))
+        if verbose: print("\n\n////////  %dth Game  ////////" %(i+1))
         if i % 2 ==0:
-            if verbose:
-                print("Black: %s, White: %s" %(agent1.name, agent2.name))
+            if verbose: print("Black: %s, White: %s" %(agent1.name, agent2.name))
             winner = simulate_game(agent1, agent2, board_size, verbose)
             if winner == Player.black:
                 agent1_win += 1
@@ -38,8 +35,7 @@ def performance_comparison(agent1, agent2, board_size, num_games=100, winning_th
             else:
                 agent2_win += 1
         else:
-            if verbose:
-                print("Black: %s, White: %s" %(agent2.name, agent1.name))
+            if verbose: print("Black: %s, White: %s" %(agent2.name, agent1.name))
             winner = simulate_game(agent2, agent1, board_size, verbose)
             if winner == Player.black:
                 agent2_win += 1
@@ -93,7 +89,7 @@ if __name__=='__main__':
     parser.add_argument('--num_games', '-n', type=int, default=100)
     parser.add_argument('--winning-threshold', '-win', type=int, default=60)
     parser.add_argument('--pvalue-threshold', '-pvalue', type=float, default=0.05)
-    parser.add_argument('--verbose', type=int, default=0)  # 0: none, 1: show play, 2: + progress bar, 3: + thee-depth, 4: + candidate moves
+    parser.add_argument('--verbose', type=int, default=0)  # 0: none, 1: show play, 2: show agent's internal info
     parser.add_argument('--use-model-name', action='store_true') # with this argument, use agents' own name. else, use names 'agent1' and 'agent2'.
     args = parser.parse_args()
 
@@ -107,13 +103,13 @@ if __name__=='__main__':
                             c=2.5, is_self_play=False, 
                             # dirichlet_noise_intensity= 0.25,
                             # dirichlet_alpha=0.5,
-                            verbose=max(args.verbose-1,0),
+                            verbose= args.verbose>=2,
                             name=get_model_name(args.model1) if args.use_model_name else 'Agent1')
     agent2 = AlphaZeroAgent(net2, encoder, rounds_per_move=400,
                             c=2.5, is_self_play=False, 
                             # dirichlet_noise_intensity= 0.25,
                             # dirichlet_alpha=0.5,
-                            verbose=max(args.verbose-1,0),
+                            verbose= args.verbose>=2,
                             name=get_model_name(args.model2) if args.use_model_name else 'Agent2')
     # set_stone_color()
     performance_comparison(agent1, agent2, board_size, num_games=args.num_games, verbose=True)

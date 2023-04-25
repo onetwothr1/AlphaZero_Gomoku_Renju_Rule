@@ -3,9 +3,9 @@ from tqdm import tqdm
 import time
 
 from experience import *
-from agent import *
+from alphazero_agent import AlphaZeroAgent
+from alphazero_net import AlphaZeroNet
 from board import GameState
-from net.alphazero_net import AlphaZeroNet
 from encoder import Encoder
 from player import Player
 from utils import *
@@ -82,22 +82,22 @@ def main():
     parser.add_argument('--c', '-c', type=float)
     parser.add_argument('--noise-intensity', type=float)
     parser.add_argument('--alpha', type=float)
-    parser.add_argument('--verbose', type=int, default=0) # 0: none, 1: show play, 2: + progress bar, 3: + thee-depth, 4: + candidate moves
+    parser.add_argument('--verbose', type=int, default=0) # 0: none, 1: show play, 2: show agent's internal info
     args = parser.parse_args()
 
     net = AlphaZeroNet(args.board_size)
     net.load_model(args.model)
     encoder = Encoder(args.board_size)
-    agent1 = alphazero_agent.AlphaZeroAgent(net, encoder, args.num_rollout_per_move,
+    agent1 = AlphaZeroAgent(net, encoder, args.num_rollout_per_move,
                                             c=args.c, is_self_play=True,
                                             dirichlet_noise_intensity=args.noise_intensity,
                                             dirichlet_alpha=args.alpha, 
-                                            verbose=max(args.verbose-1,0))
-    agent2 = alphazero_agent.AlphaZeroAgent(net, encoder, args.num_rollout_per_move,
+                                            verbose= args.verbose>=2)
+    agent2 = AlphaZeroAgent(net, encoder, args.num_rollout_per_move,
                                             c=args.c, is_self_play=True,
                                             dirichlet_noise_intensity=args.noise_intensity,
                                             dirichlet_alpha=args.alpha, 
-                                            verbose=max(args.verbose-1,0))
+                                            verbose= args.verbose>=2)
     
     start = time.time()
     # below code makes while-loop be able to use 'tqdm' progress bar

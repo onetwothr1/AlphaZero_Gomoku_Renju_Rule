@@ -6,8 +6,8 @@ import threading
 import time
 from queue import Queue
 
-from agent import *
-from net.alphazero_net import AlphaZeroNet
+from alphazero_agent import AlphaZeroAgent
+from alphazero_net import AlphaZeroNet
 from encoder import Encoder
 from board import GameState
 from player import Player
@@ -20,25 +20,30 @@ def main(verbose):
     model.load_model('models/alphazero 2250 91.pt')
     encoder = Encoder(board_size)
     bot = AlphaZeroAgent(model, encoder, 
-                        rounds_per_move=400, c=2.5, 
+                        rounds_per_move=100, c=2.5, 
                         is_self_play=False,
-                        verbose=verbose)
+                        verbose=verbose)   
     move = None
-    # set_stone_color()
+
+    set_stone_color()
     print("Do you want to go first (1) or second (2)?")
     human_turn = int(input())
-
     if human_turn==1:
-      turn = {'human' : Player.black}
+      turn = {'human': Player.black}
     elif human_turn==2:
-      turn = {'human' : Player.white}
+      turn = {'human': Player.white}
+    player_name = {
+        turn['human']: 'Player',
+        turn['human'].other: 'AI'
+    }
       
     while not game.is_over():
-        # clear_screen()
+        clear_screen()
         clear_output(wait=True)
         print('----------------------------')
-        print_move(game.prev_player(), move)
+        print_move(game.prev_player(), move, player_name[game.prev_player()] if game.prev_player() else None)
         print_board(game.board)
+        print()
 
         if game.next_player == turn['human']:
             human_input = input('Your move: ')
@@ -57,7 +62,7 @@ def main(verbose):
             move = q.get()
         game = game.apply_move(move)
 
-    # clear_screen()
+    clear_screen()
     clear_output(wait=True)
     print('----------------------------')
     print_move(game.prev_player(), move)
@@ -73,7 +78,7 @@ def main(verbose):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--verbose', type=int, default=0) # 0: none, 1: show play, 2: + progress bar, 3: + thee-depth, 4: + candidate moves
+    parser.add_argument('--verbose', type=bool, default=False)
     args = parser.parse_args()
 
     main(verbose=args.verbose)

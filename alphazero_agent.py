@@ -1,9 +1,7 @@
 from numpy.lib.type_check import nan_to_num
 import torch
 import numpy as np
-from tqdm import tqdm
 import random
-from agent import Agent
 from board import NoPossibleMove
 from utils import coords_from_point, visualize_policy_distibution
 
@@ -11,10 +9,11 @@ class Branch:
     def __init__(self, prior):
         self.prior = prior # prior probability from policy net
         self.initial_value = None # expected value from value net. 
-                                  # we can get this value after branching the node.
+                                  # can get this value after branching the node.
         self.visit_count = 0
         self.total_value = 0.0
         self.loss_predicted = 0
+        self.proactive_defense = 0
 
 class AlphaZeroTreeNode:
     def __init__(self, state, value, priors, parent, last_move):
@@ -67,6 +66,13 @@ class AlphaZeroTreeNode:
             return self.branches[move].loss_predicted
         return 0
     
+    def proactive_defense(self, move):
+        if move in self.branches:
+            return self.branches[move].proactive_defense
+        
+    def increase_proactive_defense(self, move):
+        self.branches[move].proactive_defense += 1
+    
     def visit_count(self, move):
         if move in self.branches:
             return self.branches[move].visit_count
@@ -77,10 +83,10 @@ class AlphaZeroTreeNode:
         self.branches[move].visit_count += 1
         self.branches[move].total_value += value
 
-class AlphaZeroAgent(Agent):
-    def __init__(self, model, encoder, rounds_per_move=1000, c=2.0, 
+class AlphaZeroAgent():
+    def __init__(self, model, encoder, rounds_per_move=400, c=2.0, 
                  is_self_play=False, dirichlet_noise_intensity=0.25, 
-                 dirichlet_alpha=0.05, verbose=0, name=None):
+                 dirichlet_alpha=0.05, verbose=False, name=None):
         self.model = model
         self.encoder = encoder
         self.num_rounds = rounds_per_move
@@ -88,7 +94,7 @@ class AlphaZeroAgent(Agent):
         self.is_self_play = is_self_play
         self.noise_intensity = dirichlet_noise_intensity
         self.alpha = dirichlet_alpha
-        self.verbose = verbose # 0: none, 1: progress bar, 2: + thee-depth 3: + candidate moves
+        self.verbose = verbose
         self.name = name
         self.reward_decay = 0.95
         self.collector = None # used when generating self-play data
@@ -96,19 +102,24 @@ class AlphaZeroAgent(Agent):
         self.max_depth_list = [] # max tree-depth per each move
     
     def select_move(self, game_state, thread_queue=None):
-        # Tree Search
         root = self.create_node(game_state)
         depth_cnt_list = []
         search_cnt = 0
         additional_search = 0
-        original_c = self.c
+        search_waitlist = [] # used for proactive defense system
+        original_c = self.c # used when value of c is temporarily modified
 
+        # Tree Search
         while True:
-            # Walking down the tree
             depth_cnt = 1
             node = root
-            next_move = self.select_branch(node)
+            if search_waitlist:
+                next_move = search_waitlist.pop()
+                root.increase_proactive_defense(next_move)
+            else: next_move = self.select_branch(node)
             root_child_move = next_move
+
+            # Walking down the tree
             while node.has_child(next_move):
                 node = node.get_child(next_move)
                 next_move = self.select_branch(node)
@@ -120,6 +131,32 @@ class AlphaZeroAgent(Agent):
                 new_state = node.state.apply_move(next_move)
                 if new_state.check_winning(): # win
                     value = 1 # winner gets explicit reward from game result
+
+                    # if eneymy wins in his n moves,
+                    # add enemy's winning moves to search-waitlist in order to defense
+                    n = 4
+                    if (new_state.prev_player()==game_state.next_player.other
+                        and depth_cnt <= n*2):
+                        # if depth_cnt == 2: # enemy wins in next move
+                        #     for _ in range(2): search_waitlist.append(next_move)
+                        # elif depth_cnt == 4: # eneymy wins in next two moves
+                        #     for _ in range(2):
+                        #         search_waitlist.append(next_move)
+                        #         search_waitlist.append(node.parent.last_move)
+                        # elif depth_cnt == 6: # eneymy wins in next three moves
+                        #     for _ in range(2):
+                        #         search_waitlist.append(next_move)
+                        #         search_waitlist.append(node.parent.last_move)
+                        #         search_waitlist.append(node.parent.parent.parent.last_move)
+
+                        for _ in range(2): search_waitlist.append(next_move)
+                        enemy_winning_node = node.parent
+                        for __ in range(int(depth_cnt/2) - 1):
+                            for _ in range(2): search_waitlist.append(enemy_winning_node.last_move)
+                            if enemy_winning_node.parent is not None and enemy_winning_node.parent.parent is not None:
+                                enemy_winning_node = enemy_winning_node.parent.parent
+
+
                 elif new_state.board.is_full(): #draw
                     value = 0 # get explicit reward from game result
                 else:
@@ -161,14 +198,13 @@ class AlphaZeroAgent(Agent):
                 second_visit_move = sorted_moves[1]
                 if root.loss_predicted(most_visit_move) / root.visit_count(most_visit_move) > 0.2:
                     self.c /= 3
-                    search_cnt -= 200
+                    search_cnt -= self.num_rounds / 2
                     additional_search += 1
-                    # 높은 확률로 패배 예상됨 영어로 뭐라하지
-                    print("A high probability of defeat is expected. additional search")
+                    if self.verbose: print("A high probability of defeat is expected. additional search")
                 elif root.visit_count(most_visit_move) <= root.visit_count(second_visit_move) + 15:                
-                    search_cnt -= 200
+                    search_cnt -= self.num_rounds / 2
                     additional_search += 1
-                    print('additional search')
+                    if self.verbose: print('additional search')
                 else:
                     break
         self.c = original_c
@@ -178,23 +214,24 @@ class AlphaZeroAgent(Agent):
             return NoPossibleMove()
         
         # Select a move
-        if self.verbose >= 3:
+        if self.verbose:
             # print candidate moves with there visit count and output of policy net and value net.
             # if a candidate move has never been visited, it can not show the move's value. 
             for candidate_move in sorted(root.moves(), key=root.visit_count, reverse=True)[:10]:
                 print(coords_from_point(candidate_move),
-                      '    visit %3d  p %.3f  v %s  exp_v %5.2f  loss %d'
+                      '   visit %3d  p %.3f  v %s  exp_v %5.2f  loss %3d  defense %d'
                         %(root.visit_count(candidate_move), 
                           root.prior(candidate_move), 
                           '%5.2f'%(root.initial_value(candidate_move)) if root.initial_value(candidate_move) else '???',
                           root.expected_value(candidate_move),
-                          root.loss_predicted(candidate_move)
+                          root.loss_predicted(candidate_move),
+                          root.proactive_defense(candidate_move)
                           )
                     )
         most_visit_move = max(root.moves(), key=root.visit_count)
         max_visit = root.visit_count(most_visit_move)
         max_tie_list = [move for move in root.moves() if root.visit_count(move)==max_visit]
-        next_move = random.choice(max_tie_list)
+        next_move_selected = random.choice(max_tie_list)
 
         # Record on experience collrector
         if self.collector is not None:
@@ -207,20 +244,22 @@ class AlphaZeroAgent(Agent):
             ])
             mcts_prob = visit_counts / np.sum(visit_counts)
             self.collector.record_decision(
-                root_state_tensor, mcts_prob, -1 * root.expected_value(next_move))
+                root_state_tensor, mcts_prob, -1 * root.expected_value(next_move_selected))
 
         # Statistics on tree-depth
         avg_depth = sum(depth_cnt_list) / len(depth_cnt_list)
         max_depth = max(depth_cnt_list)
         self.avg_depth_list.append(avg_depth)
         self.max_depth_list.append(max_depth)
-        if self.verbose >= 2:
-            print('average depth: %.2f, max depth: %d' %(avg_depth, max_depth))
+        if self.verbose: print('average depth: %.2f, max depth: %d' %(avg_depth, max_depth))
 
         # visualize_policy_distibution(list(root.priors.values()), game_state)
+        
+        # thread_queue is used when playing with human
         if thread_queue:
-          thread_queue.put(next_move)
-        return next_move
+          thread_queue.put(next_move_selected)
+        
+        return next_move_selected
 
     def set_collector(self, collector):
         self.collector = collector

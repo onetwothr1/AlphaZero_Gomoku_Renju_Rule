@@ -1,7 +1,7 @@
 import torch
 
-from agent import *
-from net.alphazero_net import AlphaZeroNet
+from alphazero_agent import AlphaZeroAgent
+from alphazero_net import AlphaZeroNet
 from encoder import Encoder
 from board import GameState
 from player import Player
@@ -15,19 +15,19 @@ def main():
     model.load_model('models/alphazero 2250.pt')
     encoder = Encoder(board_size)
 
-    rounds_per_move = 100
+    rounds_per_move = 200
     c = 2
     noise_intensity = 0.25
     alpha = 0.2
-    verbose = 3 # 0: none, 1: progress bar, 2: + tree-depth 3: + candidate moves
+    verbose = True
     bots = {
         Player.black: AlphaZeroAgent(model, encoder, rounds_per_move=rounds_per_move, 
-                                     c=2, is_self_play=True, 
+                                     c=2.5, is_self_play=True, 
                                      dirichlet_noise_intensity=noise_intensity, 
                                      dirichlet_alpha=alpha, 
                                     verbose=verbose),
         Player.white: AlphaZeroAgent(model, encoder, rounds_per_move=rounds_per_move, 
-                                     c=2, is_self_play=True, 
+                                     c=2.5, is_self_play=True, 
                                      dirichlet_noise_intensity=noise_intensity, 
                                      dirichlet_alpha=alpha, 
                                     verbose=verbose),
@@ -55,7 +55,7 @@ def main():
     else:
         print_board_is_full()
 
-    if verbose >= 2:
+    if verbose:
         print()
         print_tree_depth_statistics("Black",
                                     bots[Player.black].avg_depth_list,

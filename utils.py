@@ -20,7 +20,7 @@ class StoneIcon:
         StoneIcon.white = '●'
 
 def set_stone_color():
-    print("Which one is black? Type 1 or 2.")
+    print("Which color is black? Type 1 or 2.")
     print("1: %s, 2: %s" %(StoneIcon.black, StoneIcon.white))
     while True:
         answer = input()
@@ -44,9 +44,9 @@ def print_move(player, move, player_name=None):
         return 0
     move_str = '%s%d' % (COLS[move.col], move.row)
     if player_name:
-        print('%s (%s) %s' % (player, player_name, move_str))
+        print('%s(%s): %s' % (player, player_name, move_str))
     else:
-        print('%s %s' % (player, move_str))
+        print('%s: %s' % (player, move_str))
 
 
 def print_board(board):

@@ -89,11 +89,11 @@ class ExperienceCollector(Dataset):
 
         num_states = len(self.current_episode_states)
         self.states += self.current_episode_states
-        if reward == 1:
+        if reward == 1: # win
             self.rewards += [reward * (self.reward_decay ** i) for i in range(num_states-1, -1, -1)]
-        elif reward == -1:
+        elif reward == -1: # lose
             self.rewards += [reward * 0.95 * (self.reward_decay ** i) for i in range(num_states-1, -1, -1)]
-        elif reward == 0:
+        elif reward == 0: # draw (board is full)
             self.rewards += self.current_episode_expected_values
         self.mcts_probs += self.current_episode_mcts_probs
         
