@@ -13,7 +13,7 @@ def main():
         clear_screen()
         print('----------------------------')
         print_move(game.prev_player(), move)
-        print_board(game.board)
+        print_board(game)
 
         human_input = input('-- ')
         move = handle_input(human_input, game, board_size)
@@ -25,7 +25,7 @@ def main():
     clear_screen()
     print('----------------------------')
     print_move(game.prev_player(), move)
-    print_board(game.board)
+    print_board(game)
 
     if game.winner:
         if game.win_by_forcing_forbidden_move:

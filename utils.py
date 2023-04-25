@@ -3,18 +3,15 @@ import numpy as np
 from numpy import average
 import platform
 import subprocess
-import enum
 
 from board import Point, GameState
 from player import Player
-from encoder import Encoder
 
 COLS = 'ABCDEFGHJKLMNOPQRST'
 
 class StoneIcon:
     black = '●'
     white = '○'
-    
     def change():
         StoneIcon.black = '○'
         StoneIcon.white = '●'
@@ -49,11 +46,15 @@ def print_move(player, move, player_name=None):
         print('%s: %s' % (player, move_str))
 
 
-def print_board(board):
-    # for row in range(board.board_size-1, -1, -1):
+def print_board(game_state):
+    board_size = game_state.board.board_size
+    # for row in range(board_size-1, -1, -1):
     #     line = []
-    #     for col in range(board.board_size):
-    #         stone = board.get(Point(row=row, col=col))
+    #     for col in range(board_size):
+#             if Point(row=row, col=col) in game_state.forbidden_moves:
+#                 line.append('X')
+#                 continue
+    #         stone = game_state.board.get(Point(row=row, col=col))
     #         if stone==0:
     #             line.append(' ')
     #         elif stone==Player.black:
@@ -61,11 +62,14 @@ def print_board(board):
     #         elif stone==Player.white:
     #             line.append(StoneIcon.white)
     #     print(' %d %s' % (row, ' '.join(line)))
-    # print('   ' + ' '.join(COLS[:board.board_size]))
-    for row in range(board.board_size-1, -1, -1):
+    # print('   ' + ' '.join(COLS[:board_size]))
+    for row in range(board_size-1, -1, -1):
         line = []
-        for col in range(board.board_size):
-            stone = board.get(Point(row=row, col=col))
+        for col in range(board_size):
+            if Point(row=row, col=col) in game_state.forbidden_moves:
+                line.append('X ')
+                continue
+            stone = game_state.board.get(Point(row=row, col=col))
             if stone==0:
                 line.append('  ')
             elif stone==Player.black:
@@ -73,7 +77,7 @@ def print_board(board):
             elif stone==Player.white:
                 line.append(StoneIcon.white)
         print(' %d %s' % (row, ''.join(line)))
-    print('   ' + ' '.join(COLS[:board.board_size]))
+    print('   ' + ' '.join(COLS[:board_size]))
 
 def handle_input(_input, game: GameState, board_size):
     point = point_from_coords(_input.strip(), board_size)
@@ -192,7 +196,7 @@ def visualize_policy_distibution(probability_distribution, game_state):
                 ax.text(y+0.5, board_size-x-0.5, '●', ha='center',va='center', fontsize=25, color='black')
             elif board.get(Point(x,y))==Player.white:
                 ax.text(y+0.5, board_size-x-0.5, '○', ha='center',va='center', fontsize=25, color='black')
-    for move in game_state.forbidden_moves():
+    for move in game_state.forbidden_moves:
         ax.text(move.col + 0.5, board_size-move.row - 0.5, 'X', ha='center',va='center', fontsize=25, color='black')
 
     ax.set_xticks(range(board_size))

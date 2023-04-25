@@ -26,7 +26,7 @@ class Encoder():
                     board_tensor[1][row][col] = 1
                 else:
                     board_tensor[2][row][col] = 1
-        for move in game_state.forbidden_moves():
+        for move in game_state.forbidden_moves:
             board_tensor[3][move.row][move.col] = 1
         return torch.tensor(board_tensor, dtype=torch.float)
 

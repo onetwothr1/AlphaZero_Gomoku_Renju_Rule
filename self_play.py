@@ -21,7 +21,7 @@ def simulate_game(black_player, white_player, board_size, verbose=False):
         if verbose:
             print('----------------------------')
             print_move(game.prev_player(), move, agents[game.prev_player()].name if game.prev_player() else None)
-            print_board(game.board)
+            print_board(game)
 
         move = agents[game.next_player].select_move(game)
         game = game.apply_move(move)
@@ -29,7 +29,7 @@ def simulate_game(black_player, white_player, board_size, verbose=False):
     if verbose:
         print('----------------------------')
         print_move(game.prev_player(), move, agents[game.prev_player()].name)
-        print_board(game.board)
+        print_board(game)
 
         if game.winner:
             print_winner(game.winner, game.win_by_forcing_forbidden_move)

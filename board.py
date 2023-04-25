@@ -55,6 +55,8 @@ class GameState():
         self.winner = None
         self.win_by_forcing_forbidden_move = False
 
+        self.forbidden_moves = self.get_forbidden_moves()
+
     def apply_move(self, move):
         if isinstance(move, NoPossibleMove):
             self.win_by_forcing_forbidden_move = True
@@ -68,7 +70,7 @@ class GameState():
     def apply_move_test(self, move):
         next_board = copy.deepcopy(self.board)
         next_board.place_stone(self.next_player, move)
-        return GameState(next_board, self.next_player, self, move)
+        return GameState(next_board, self.next_player, self, move, self.turn_cnt+1)
 
     def new_game(board_size: int):
         board = Board(board_size)
@@ -99,7 +101,7 @@ class GameState():
                     moves.append(move)
         return moves
     
-    def forbidden_moves(self):
+    def get_forbidden_moves(self):
         if self.next_player == Player.white:
             return []
         

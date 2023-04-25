@@ -12,22 +12,22 @@ def main():
     game = GameState.new_game(board_size)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = AlphaZeroNet(board_size)
-    model.load_model('models/alphazero 2250.pt')
+    model.load_model('models/alphazero 2250 91.pt')
     encoder = Encoder(board_size)
 
-    rounds_per_move = 200
+    rounds_per_move = 100
     c = 2
     noise_intensity = 0.25
     alpha = 0.2
     verbose = True
     bots = {
         Player.black: AlphaZeroAgent(model, encoder, rounds_per_move=rounds_per_move, 
-                                     c=2.5, is_self_play=True, 
+                                     c=2.5, is_self_play=False, 
                                      dirichlet_noise_intensity=noise_intensity, 
                                      dirichlet_alpha=alpha, 
                                     verbose=verbose),
         Player.white: AlphaZeroAgent(model, encoder, rounds_per_move=rounds_per_move, 
-                                     c=2.5, is_self_play=True, 
+                                     c=2.5, is_self_play=False, 
                                      dirichlet_noise_intensity=noise_intensity, 
                                      dirichlet_alpha=alpha, 
                                     verbose=verbose),
@@ -40,7 +40,7 @@ def main():
         # clear_screen()
         print('----------------------------')
         print_move(game.prev_player(), bot_move, bots[game.prev_player()].name if game.prev_player() else None)
-        print_board(game.board)
+        print_board(game)
 
         bot_move = bots[game.next_player].select_move(game)
         game = game.apply_move(bot_move)
@@ -48,7 +48,7 @@ def main():
     # clear_screen()
     print('----------------------------')
     print_move(game.prev_player(), bot_move, bots[game.prev_player()].name)
-    print_board(game.board)
+    print_board(game)
 
     if game.winner:
         print_winner(game.winner, game.win_by_forcing_forbidden_move)

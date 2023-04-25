@@ -42,7 +42,7 @@ def main(verbose):
         clear_output(wait=True)
         print('----------------------------')
         print_move(game.prev_player(), move, player_name[game.prev_player()] if game.prev_player() else None)
-        print_board(game.board)
+        print_board(game)
         print()
 
         if game.next_player == turn['human']:
@@ -66,7 +66,7 @@ def main(verbose):
     clear_output(wait=True)
     print('----------------------------')
     print_move(game.prev_player(), move)
-    print_board(game.board)
+    print_board(game)
 
     if game.winner:
         if game.win_by_forcing_forbidden_move:
