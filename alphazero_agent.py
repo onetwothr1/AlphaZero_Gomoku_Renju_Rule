@@ -1,7 +1,7 @@
-from numpy.lib.type_check import nan_to_num
 import torch
 import numpy as np
 import random
+import matplotlib.pyplot as plt
 from board import NoPossibleMove
 from utils import coords_from_point, visualize_policy_distibution
 
@@ -14,6 +14,7 @@ class Branch:
         self.total_value = 0.0
         self.loss_predicted = 0
         self.proactive_defense = 0
+        self.depth_list = []
 
 class AlphaZeroTreeNode:
     def __init__(self, state, value, priors, parent, last_move):
@@ -72,7 +73,19 @@ class AlphaZeroTreeNode:
         
     def increase_proactive_defense(self, move):
         self.branches[move].proactive_defense += 1
+
+    def append_depth_list(self, move, depth):
+        self.branches[move].depth_list.append(depth)
+
+    def show_depth_list(self, move):
+        plt.plot(self.branches[move].depth_list)
+        plt.xlabel('Number of searches')
+        plt.ylabel('Depth')
+        plt.show()
     
+    def get_max_depth(self, move):
+        return max(self.branches[move].depth_list)
+
     def visit_count(self, move):
         if move in self.branches:
             return self.branches[move].visit_count
@@ -86,7 +99,8 @@ class AlphaZeroTreeNode:
 class AlphaZeroAgent():
     def __init__(self, model, encoder, rounds_per_move=400, c=2.0, 
                  is_self_play=False, dirichlet_noise_intensity=0.25, 
-                 dirichlet_alpha=0.05, verbose=False, name=None):
+                 dirichlet_alpha=0.05, name=None, verbose=False,
+                 show_search_depth_graph=False, show_policy_distribution=False):
         self.model = model
         self.encoder = encoder
         self.num_rounds = rounds_per_move
@@ -94,8 +108,10 @@ class AlphaZeroAgent():
         self.is_self_play = is_self_play
         self.noise_intensity = dirichlet_noise_intensity
         self.alpha = dirichlet_alpha
-        self.verbose = verbose
         self.name = name
+        self.verbose = verbose
+        self.show_search_depth_graph = show_search_depth_graph
+        self.show_policy_distribution = show_policy_distribution
         self.reward_decay = 0.95
         self.collector = None # used when generating self-play data
         self.avg_depth_list = [] # average of tree-depth in MCTS
@@ -117,7 +133,7 @@ class AlphaZeroAgent():
                 next_move = search_waitlist.pop()
                 root.increase_proactive_defense(next_move)
             else: next_move = self.select_branch(node)
-            root_child_move = next_move
+            root_child_node = next_move
 
             # Walking down the tree
             while node.has_child(next_move):
@@ -125,45 +141,34 @@ class AlphaZeroAgent():
                 next_move = self.select_branch(node)
                 depth_cnt += 1
             depth_cnt_list.append(depth_cnt)
+            root.append_depth_list(root_child_node, depth_cnt)
+            last_move = next_move
 
-            if next_move is not None:
+            if last_move is not None:
                 # Expanding the tree
-                new_state = node.state.apply_move(next_move)
+                new_state = node.state.apply_move(last_move)
                 if new_state.check_winning(): # win
                     value = 1 # winner gets explicit reward from game result
 
+                    # Proactive Defense System
                     # if eneymy wins in his n moves,
-                    # add enemy's winning moves to search-waitlist in order to defense
+                    # add enemy's winning moves to search-waitlist
                     n = 4
                     if (new_state.prev_player()==game_state.next_player.other
                         and depth_cnt <= n*2):
-                        # if depth_cnt == 2: # enemy wins in next move
-                        #     for _ in range(2): search_waitlist.append(next_move)
-                        # elif depth_cnt == 4: # eneymy wins in next two moves
-                        #     for _ in range(2):
-                        #         search_waitlist.append(next_move)
-                        #         search_waitlist.append(node.parent.last_move)
-                        # elif depth_cnt == 6: # eneymy wins in next three moves
-                        #     for _ in range(2):
-                        #         search_waitlist.append(next_move)
-                        #         search_waitlist.append(node.parent.last_move)
-                        #         search_waitlist.append(node.parent.parent.parent.last_move)
-
-                        for _ in range(2): search_waitlist.append(next_move)
+                        for _ in range(2): search_waitlist.append(last_move)
                         enemy_winning_node = node.parent
                         for __ in range(int(depth_cnt/2) - 1):
                             for _ in range(2): search_waitlist.append(enemy_winning_node.last_move)
                             if enemy_winning_node.parent is not None and enemy_winning_node.parent.parent is not None:
                                 enemy_winning_node = enemy_winning_node.parent.parent
-
-
                 elif new_state.board.is_full(): #draw
                     value = 0 # get explicit reward from game result
-                else:
+                else: # get a value predicted by value-network
                     child_node = self.create_node(
-                        new_state, last_move=next_move, parent=node)
+                        new_state, last_move=last_move, parent=node)
                     value = -1 * child_node.value
-                move = next_move
+                move = last_move
             else: 
                 # no possible move available except forbidden moves. current player lost.
                 value = 1 # winner gets explicit reward from game result
@@ -178,7 +183,7 @@ class AlphaZeroAgent():
                 if value==1 and new_state.prev_player()==game_state.next_player.other:
                     # when enemy wins, decrease the impact of reward decay to make the agent focus more on defense.
                     reward_decay = 0.99
-                    root.increase_loss_predicted(root_child_move)
+                    root.increase_loss_predicted(root_child_node)
                 else:
                     reward_decay = self.reward_decay
                 value = -1 * reward_decay * value
@@ -186,10 +191,12 @@ class AlphaZeroAgent():
             # end tree searching
             search_cnt += 1
             if search_cnt == self.num_rounds:
-                # if most visited move and second's visit count are close, try more search
-                if len(root.moves()) < 2:
-                    break
+                # if the most visited move and the second one's visit counts are close
+                # or higy propability of defeat is expected,
+                # try more search
                 if game_state.turn_cnt < 8:
+                    break
+                if len(root.moves()) < 2:
                     break
                 if additional_search >= 3:
                     break
@@ -200,11 +207,11 @@ class AlphaZeroAgent():
                     self.c /= 3
                     search_cnt -= self.num_rounds / 2
                     additional_search += 1
-                    if self.verbose: print("A high probability of defeat is expected. additional search")
+                    if self.verbose: print("A high probability of defeat is expected. Do additional search.")
                 elif root.visit_count(most_visit_move) <= root.visit_count(second_visit_move) + 15:                
                     search_cnt -= self.num_rounds / 2
                     additional_search += 1
-                    if self.verbose: print('additional search')
+                    if self.verbose: print('The best and second best move are tie close. Do additional search.')
                 else:
                     break
         self.c = original_c
@@ -215,17 +222,18 @@ class AlphaZeroAgent():
         
         # Select a move
         if self.verbose:
-            # print candidate moves with there visit count and output of policy net and value net.
+            # print candidate moves with there visit count and internal info.
             # if a candidate move has never been visited, it can not show the move's value. 
             for candidate_move in sorted(root.moves(), key=root.visit_count, reverse=True)[:10]:
                 print(coords_from_point(candidate_move),
-                      '   visit %3d  p %.3f  v %s  exp_v %5.2f  loss %3d  defense %d'
-                        %(root.visit_count(candidate_move), 
-                          root.prior(candidate_move), 
+                      '   visit %3d  p %.3f  v %s  exp_v %5.2f  loss %3d  defense %d  max_depth %d'
+                        %(root.visit_count(candidate_move),
+                          root.prior(candidate_move),
                           '%5.2f'%(root.initial_value(candidate_move)) if root.initial_value(candidate_move) else '???',
                           root.expected_value(candidate_move),
                           root.loss_predicted(candidate_move),
-                          root.proactive_defense(candidate_move)
+                          root.proactive_defense(candidate_move),
+                          root.get_max_depth(candidate_move)
                           )
                     )
         most_visit_move = max(root.moves(), key=root.visit_count)
@@ -253,7 +261,8 @@ class AlphaZeroAgent():
         self.max_depth_list.append(max_depth)
         if self.verbose: print('average depth: %.2f, max depth: %d' %(avg_depth, max_depth))
 
-        # visualize_policy_distibution(list(root.priors.values()), game_state)
+        if self.show_search_depth_graph: root.show_depth_list(next_move_selected)
+        if self.show_policy_distribution: visualize_policy_distibution(list(root.priors.values()), game_state)
         
         # thread_queue is used when playing with human
         if thread_queue:
