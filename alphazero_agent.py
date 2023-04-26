@@ -34,6 +34,9 @@ class AlphaZeroTreeNode:
     def moves(self):
         return self.branches.keys()
 
+    def valid_move(self, move):
+        return move in self.branches
+
     def add_child(self, move, child_node, value):
         self.children[move] = child_node
         self.branches[move].initial_value = value
@@ -131,7 +134,8 @@ class AlphaZeroAgent():
             node = root
             if search_waitlist:
                 next_move = search_waitlist.pop()
-                root.increase_proactive_defense(next_move)
+                if root.valid_move(next_move): root.increase_proactive_defense(next_move)
+                else: next_move = self.select_branch(node)
             else: next_move = self.select_branch(node)
             root_child_node = next_move
 

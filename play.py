@@ -13,14 +13,14 @@ from board import GameState
 from player import Player
 from utils import *
 
-def main(verbose):
+def main(num_rounds, verbose):
     board_size = 9
     game = GameState.new_game(board_size)
     model = AlphaZeroNet(board_size)
     model.load_model('models/alphazero 2250 91.pt')
     encoder = Encoder(board_size)
     bot = AlphaZeroAgent(model, encoder, 
-                        rounds_per_move=100, c=2.5, 
+                        rounds_per_move=num_rounds, c=2.5, 
                         is_self_play=False,
                         verbose=verbose)   
     move = None
@@ -78,7 +78,9 @@ def main(verbose):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--num-rounds', '-n', type=int, default=200)
     parser.add_argument('--verbose', type=bool, default=False)
     args = parser.parse_args()
 
-    main(verbose=args.verbose)
+    main(num_rounds=args.num_rounds,
+        verbose=args.verbose)
