@@ -87,8 +87,10 @@ class AlphaZeroTreeNode:
         plt.show()
     
     def get_max_depth(self, move):
-        return max(self.branches[move].depth_list)
-
+        if self.branches[move].depth_list:
+            return max(self.branches[move].depth_list)
+        return 0
+    
     def visit_count(self, move):
         if move in self.branches:
             return self.branches[move].visit_count
@@ -215,7 +217,7 @@ class AlphaZeroAgent():
                 elif root.visit_count(most_visit_move) <= root.visit_count(second_visit_move) + 15:                
                     search_cnt -= self.num_rounds / 2
                     additional_search += 1
-                    if self.verbose: print('The best and second best move are tie close. Do additional search.')
+                    if self.verbose: print("The best and the second best move's visit counts are close. Do additional search.")
                 else:
                     break
         self.c = original_c

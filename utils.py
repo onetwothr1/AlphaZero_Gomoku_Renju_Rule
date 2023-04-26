@@ -51,9 +51,9 @@ def print_board(game_state):
     # for row in range(board_size-1, -1, -1):
     #     line = []
     #     for col in range(board_size):
-#             if Point(row=row, col=col) in game_state.forbidden_moves:
-#                 line.append('X')
-#                 continue
+    #         if Point(row=row, col=col) in game_state.forbidden_moves:
+    #             line.append('X')
+    #             continue
     #         stone = game_state.board.get(Point(row=row, col=col))
     #         if stone==0:
     #             line.append(' ')

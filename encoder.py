@@ -2,6 +2,7 @@ import numpy as np
 import torch
 
 from board import Point
+from player import Player
 
 # plane 0: empty points
 # plane 1: my stones
@@ -26,8 +27,9 @@ class Encoder():
                     board_tensor[1][row][col] = 1
                 else:
                     board_tensor[2][row][col] = 1
-        for move in game_state.forbidden_moves:
-            board_tensor[3][move.row][move.col] = 1
+        if game_state.next_player == Player.black:
+            for move in game_state.forbidden_moves:
+                board_tensor[3][move.row][move.col] = 1
         return torch.tensor(board_tensor, dtype=torch.float)
 
     def encode_move(self, point):

@@ -15,7 +15,7 @@ def main():
     model.load_model('models/alphazero 2250 91.pt')
     encoder = Encoder(board_size)
 
-    rounds_per_move = 100
+    rounds_per_move = 200
     c = 2
     noise_intensity = 0.25
     alpha = 0.2

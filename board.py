@@ -102,9 +102,6 @@ class GameState():
         return moves
     
     def get_forbidden_moves(self):
-        if self.next_player == Player.white:
-            return []
-        
         _forbidden_moves = []
         for row in range(0, self.board.board_size):
             for col in range(0, self.board.board_size):
