@@ -33,6 +33,9 @@ class AlphaZeroTreeNode:
     def moves(self):
         return self.branches.keys()
 
+    def valid_move(self, move):
+        return move in self.branches
+
     def add_child(self, move, child_node, value):
         self.children[move] = child_node
         self.branches[move].initial_value = value
@@ -115,7 +118,8 @@ class AlphaZeroAgent():
             node = root
             if search_waitlist:
                 next_move = search_waitlist.pop()
-                root.increase_proactive_defense(next_move)
+                if root.valid_move(next_move): root.increase_proactive_defense(next_move)
+                else: next_move = self.select_branch(node)
             else: next_move = self.select_branch(node)
             root_child_move = next_move
 
@@ -132,6 +136,7 @@ class AlphaZeroAgent():
                 if new_state.check_winning(): # win
                     value = 1 # winner gets explicit reward from game result
 
+                    ## proactive defense system ##
                     # if eneymy wins in his n moves,
                     # add enemy's winning moves to search-waitlist in order to defense
                     n = 4
