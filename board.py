@@ -54,6 +54,7 @@ class GameState():
         self.turn_cnt = turn_cnt
         self.winner = None
         self.win_by_forcing_forbidden_move = False
+        self.full_board = False
 
         self.forbidden_moves = self.get_forbidden_moves()
 
@@ -116,12 +117,19 @@ class GameState():
             return False
         if self.board.is_full():
             self.winner = None
+            self.full_board = True
+            return True
+        if self.turn_cnt >= 60 and self.check_draw_situation():
+            self.winner = None
             return True
         if self.win_by_forcing_forbidden_move:
+            self.forbidden_moves = []
             return True
         if self.check_winning():
             self.winner = self.prev_player()
+            self.forbidden_moves = []
             return True
+        return False
 
     def check_winning(self):
         return self.rule.is_five_or_more(self.last_move.col, self.last_move.row, self.prev_player())
@@ -130,3 +138,53 @@ class GameState():
         if self.previous_state is None:
             return None
         return self.previous_state.next_player
+
+    def check_draw_situation(self):
+        board_temp = copy.deepcopy(self.board)
+        for row in board_temp:
+            for c in row:
+                p = Point(row, c)
+                if board_temp.is_empty(p):
+                    board_temp.place_stone(self.prev_player())
+        return GameState.has_five_in_a_row(board_temp, self.prev_player())
+
+    def has_five_in_a_row(board, stone):
+        # Check horizontal sequences
+        for row in board:
+            for i in range(len(row) - 4):
+                if all(cell == stone for cell in row[i:i+5]):
+                    return True
+
+        # Check vertical sequences
+        for col in range(len(board[0])):
+            for i in range(len(board) - 4):
+                if all(board[row][col] == stone for row in range(i, i+5)):
+                    return True
+
+        # Check diagonal sequences (top-left to bottom-right)
+        for row in range(len(board) - 4):
+            for col in range(len(board[0]) - 4):
+                if all(board[row+i][col+i] == stone for i in range(5)):
+                    return True
+
+        # Check diagonal sequences (top-right to bottom-left)
+        for row in range(len(board) - 4):
+            for col in range(4, len(board[0])):
+                if all(board[row+i][col-i] == stone for i in range(5)):
+                    return True
+
+        return False
+
+
+
+
+
+
+
+
+
+
+
+
+
+

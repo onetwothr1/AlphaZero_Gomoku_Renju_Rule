@@ -17,10 +17,11 @@ def main(num_rounds, verbose):
     board_size = 9
     game = GameState.new_game(board_size)
     model = AlphaZeroNet(board_size)
-    model.load_model('models/alphazero 2250 91.pt')
+    model.load_model('models/alphazero 3000.pt')
     encoder = Encoder(board_size)
     bot = AlphaZeroAgent(model, encoder, 
-                        rounds_per_move=num_rounds, c=2.5, 
+                        rounds_per_move=num_rounds, c=2.5,
+                        random_exploration=0.2, 
                         is_self_play=False,
                         verbose=verbose)   
     move = None
@@ -36,9 +37,11 @@ def main(num_rounds, verbose):
         turn['human']: 'Player',
         turn['human'].other: 'AI'
     }
-      
+    # clear_screen()
+    clear_output(wait=True)
+    
     while not game.is_over():
-        clear_screen()
+        # clear_screen()
         clear_output(wait=True)
         print('----------------------------')
         print_move(game.prev_player(), move, player_name[game.prev_player()] if game.prev_player() else None)
@@ -62,24 +65,27 @@ def main(num_rounds, verbose):
             move = q.get()
         game = game.apply_move(move)
 
-    clear_screen()
+    # clear_screen()
     clear_output(wait=True)
     print('----------------------------')
-    print_move(game.prev_player(), move)
+    print_move(game.prev_player(), move, player_name[game.prev_player()] if game.prev_player() else None)
     print_board(game)
 
     if game.winner:
         if game.win_by_forcing_forbidden_move:
             print_winner(game.winner, game.win_by_forcing_forbidden_move)
         print_winner(game.winner)
-    else:
+    elif game.full_board:
         print_board_is_full()
+    else:
+        print_no_one_can_win()
+
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num-rounds', '-n', type=int, default=200)
-    parser.add_argument('--verbose', type=bool, default=False)
+    parser.add_argument('--verbose', type=int, default=0)
     args = parser.parse_args()
 
     main(num_rounds=args.num_rounds,

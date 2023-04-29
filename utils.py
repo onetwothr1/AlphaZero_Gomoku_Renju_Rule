@@ -116,19 +116,22 @@ def print_winner(winner, win_by_forcing_forbidden_move=False):
         print('\n%s wins!' %(winner))
 
 def print_board_is_full():
-    print("\nboard is full. end game.")
+    print("\nBoard is full. End game.")
+
+def print_no_one_can_win():
+    print("\nThe game has reached a point where no one can win anymore.")
 
 def print_wrong_input():
-    print("wrong input. try again")
+    print("Wrong input. try again")
 
 def print_out_of_board():
-    print("point is out of board. type a proper point again.")
+    print("Point is out of board. type a proper point again.")
 
 def print_not_empty():
-    print('the point is already occupied. try another point.')
+    print('The point is already occupied. try another point.')
 
 def print_invalid_move():
-    print("that move is forbidden. try another move.")
+    print("That move is forbidden. try another move.")
 
 def print_tree_depth_statistics(player1, p1_avg_depths, p1_max_depths, player2, p2_avg_depths, p2_max_depths):
     print("\n<Tree-search depth statistics>")

@@ -12,7 +12,8 @@ class Branch:
                                   # can get this value after branching the node.
         self.visit_count = 0
         self.total_value = 0.0
-        self.loss_predicted = 0
+        self.loss = 0
+        self.winning = 0
         self.proactive_defense = 0
         self.depth_list = []
 
@@ -62,14 +63,22 @@ class AlphaZeroTreeNode:
     def total_value(self, move):
         return self.branches[move].total_value
     
-    def increase_loss_predicted(self, move):
-        self.branches[move].loss_predicted += 1
+    def increase_loss(self, move):
+        self.branches[move].loss += 1
 
-    def loss_predicted(self, move):
+    def loss(self, move):
         if move in self.branches:
-            return self.branches[move].loss_predicted
+            return self.branches[move].loss
         return 0
-    
+
+    def increase_winning(self, move):
+        self.branches[move].winning += 1
+
+    def winning(self, move):
+        if move in self.branches:
+            return self.branches[move].winning
+        return 0
+
     def proactive_defense(self, move):
         if move in self.branches:
             return self.branches[move].proactive_defense
@@ -104,7 +113,8 @@ class AlphaZeroTreeNode:
 class AlphaZeroAgent():
     def __init__(self, model, encoder, rounds_per_move=400, c=2.0, 
                  is_self_play=False, dirichlet_noise_intensity=0.25, 
-                 dirichlet_alpha=0.05, name=None, verbose=False,
+                 dirichlet_alpha=0.05, random_exploration=0.1,
+                 name=None, verbose=False,
                  show_search_depth_graph=False, show_policy_distribution=False):
         self.model = model
         self.encoder = encoder
@@ -113,6 +123,7 @@ class AlphaZeroAgent():
         self.is_self_play = is_self_play
         self.noise_intensity = dirichlet_noise_intensity
         self.alpha = dirichlet_alpha
+        self.exploration_epsilon = random_exploration
         self.name = name
         self.verbose = verbose
         self.show_search_depth_graph = show_search_depth_graph
@@ -156,18 +167,23 @@ class AlphaZeroAgent():
                 if new_state.check_winning(): # win
                     value = 1 # winner gets explicit reward from game result
 
-                    # Proactive Defense System
-                    # if eneymy wins in his n moves,
-                    # add enemy's winning moves to search-waitlist
-                    n = 4
-                    if (new_state.prev_player()==game_state.next_player.other
-                        and depth_cnt <= n*2):
-                        for _ in range(2): search_waitlist.append(last_move)
-                        enemy_winning_node = node.parent
-                        for __ in range(int(depth_cnt/2) - 1):
-                            for _ in range(2): search_waitlist.append(enemy_winning_node.last_move)
-                            if enemy_winning_node.parent is not None and enemy_winning_node.parent.parent is not None:
-                                enemy_winning_node = enemy_winning_node.parent.parent
+                    # My winning
+                    if new_state.prev_player()==game_state.next_player:
+                        root.increase_winning(root_child_node)
+                    # Enemy's winning
+                    else:
+                        root.increase_loss(root_child_node)
+                        # if eneymy wins in his n moves,
+                        # add enemy's winning moves to search-waitlist
+                        n = 4
+                        if depth_cnt <= n*2:
+                            for _ in range(3): search_waitlist.append(last_move)
+                            enemy_winning_node = node.parent
+                            for __ in range(int(depth_cnt/2) - 1):
+                                for _ in range(3): search_waitlist.append(enemy_winning_node.last_move)
+                                if enemy_winning_node.parent is not None and enemy_winning_node.parent.parent is not None:
+                                    enemy_winning_node = enemy_winning_node.parent.parent
+                    
                 elif new_state.board.is_full(): #draw
                     value = 0 # get explicit reward from game result
                 else: # get a value predicted by value-network
@@ -189,7 +205,6 @@ class AlphaZeroAgent():
                 if value==1 and new_state.prev_player()==game_state.next_player.other:
                     # when enemy wins, decrease the impact of reward decay to make the agent focus more on defense.
                     reward_decay = 0.99
-                    root.increase_loss_predicted(root_child_node)
                 else:
                     reward_decay = self.reward_decay
                 value = -1 * reward_decay * value
@@ -209,7 +224,7 @@ class AlphaZeroAgent():
                 sorted_moves = sorted(root.moves(), key=root.visit_count, reverse=True)
                 most_visit_move = sorted_moves[0]
                 second_visit_move = sorted_moves[1]
-                if root.loss_predicted(most_visit_move) / root.visit_count(most_visit_move) > 0.2:
+                if root.loss(most_visit_move) / root.visit_count(most_visit_move) > 0.2:
                     self.c /= 3
                     search_cnt -= self.num_rounds / 2
                     additional_search += 1
@@ -232,12 +247,13 @@ class AlphaZeroAgent():
             # if a candidate move has never been visited, it can not show the move's value. 
             for candidate_move in sorted(root.moves(), key=root.visit_count, reverse=True)[:10]:
                 print(coords_from_point(candidate_move),
-                      '   visit %3d  p %.3f  v %s  exp_v %5.2f  loss %3d  defense %3d  depth %d'
+                      '   visit %3d  p %.3f  v %s  exp_v %5.2f  win %3d  loss %3d  defense %3d  depth %d'
                         %(root.visit_count(candidate_move),
                           root.prior(candidate_move),
                           '%5.2f'%(root.initial_value(candidate_move)) if root.initial_value(candidate_move) else '???',
                           root.expected_value(candidate_move),
-                          root.loss_predicted(candidate_move),
+                          root.winning(candidate_move),
+                          root.loss(candidate_move),
                           root.proactive_defense(candidate_move),
                           root.get_max_depth(candidate_move)
                           )
@@ -253,7 +269,7 @@ class AlphaZeroAgent():
             # Subtract the expected number of defeats from the number of visits
             visit_counts = np.array([
                 root.visit_count(self.encoder.decode_move_index(idx))
-                - root.loss_predicted(self.encoder.decode_move_index(idx))
+                - root.loss(self.encoder.decode_move_index(idx))
                 for idx in range(self.encoder.num_moves())
             ])
             mcts_prob = visit_counts / np.sum(visit_counts)
@@ -284,8 +300,7 @@ class AlphaZeroAgent():
             return None
 
         # exploration
-        epsilon = 0.1
-        if random.random() < epsilon:
+        if random.random() < self.exploration_epsilon:
             return random.choice(list(node.moves()))
         
         # exploitation

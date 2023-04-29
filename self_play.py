@@ -33,8 +33,10 @@ def simulate_game(black_player, white_player, board_size, verbose=False):
 
         if game.winner:
             print_winner(game.winner, game.win_by_forcing_forbidden_move)
-        else:
+        elif game.full_board:
             print_board_is_full()
+        else:
+            print_no_one_can_win()
 
     return game.winner
 

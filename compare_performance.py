@@ -18,6 +18,7 @@ def performance_comparison(agent1, agent2, board_size, num_games=100, winning_th
     agent1_black_win = 0
     agent2_win = 0
     agent2_black_win = 0
+    draw = 0
 
     agent1_avg_depth_list = []
     agent1_max_depth_list = []
@@ -32,21 +33,27 @@ def performance_comparison(agent1, agent2, board_size, num_games=100, winning_th
             if winner == Player.black:
                 agent1_win += 1
                 agent1_black_win += 1
-            else:
+            elif winner == Player.white:
                 agent2_win += 1
+            else:
+                draw += 1
+
         else:
             if verbose: print("Black: %s, White: %s" %(agent2.name, agent1.name))
             winner = simulate_game(agent2, agent1, board_size, verbose)
             if winner == Player.black:
                 agent2_win += 1
                 agent2_black_win += 1
-            else:
+            elif winner == Player.white:
                 agent1_win += 1
+            else:
+                draw += 1
         
         print("\n%s vs %s => %d : %d" %(agent1.name, agent2.name, agent1_win, agent2_win))
         print("playing first: %s vs %s => %d : %d" %(agent1.name, agent2.name, agent1_black_win, agent2_black_win))
         print("playing second: %s vs %s => %d : %d" %(agent1.name, agent2.name, agent1_win - agent1_black_win, agent2_win - agent2_black_win))
-        
+        print("draw: %d" %draw)
+
         # statistics on tree-depth
         if verbose:
             print()
@@ -68,6 +75,7 @@ def performance_comparison(agent1, agent2, board_size, num_games=100, winning_th
     print('p-value %f' %(p_val))
     print("playing first: %s vs %s => %d : %d" %(agent1.name, agent2.name, agent1_black_win, agent2_black_win))
     print("playing second: %s vs %s => %d : %d" %(agent1.name, agent2.name, agent1_win - agent1_black_win, agent2_win - agent2_black_win))
+    print("draw: %d" %draw)
         
     print_tree_depth_statistics(agent1.name,
                                 agent1_avg_depth_list,
@@ -99,13 +107,13 @@ if __name__=='__main__':
     net2 = AlphaZeroNet(board_size)
     net2.load_model(args.model2)
     encoder = Encoder(board_size)
-    agent1 = AlphaZeroAgent(net1, encoder, rounds_per_move=400,
+    agent1 = AlphaZeroAgent(net1, encoder, rounds_per_move=200,
                             c=2.5, is_self_play=False, 
                             # dirichlet_noise_intensity= 0.25,
                             # dirichlet_alpha=0.5,
                             verbose= args.verbose>=2,
                             name=get_model_name(args.model1) if args.use_model_name else 'Agent1')
-    agent2 = AlphaZeroAgent(net2, encoder, rounds_per_move=400,
+    agent2 = AlphaZeroAgent(net2, encoder, rounds_per_move=200,
                             c=2.5, is_self_play=False, 
                             # dirichlet_noise_intensity= 0.25,
                             # dirichlet_alpha=0.5,
