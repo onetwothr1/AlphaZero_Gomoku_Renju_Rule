@@ -1,9 +1,6 @@
 empty = 0
 # black_stone = 1
 # white_stone = 2
-# last_b_stone = 3
-# last_a_stont = 4
-# tie = 100
 
 class Renju_Rule(object):
     def __init__(self, board):
@@ -123,7 +120,6 @@ class Renju_Rule(object):
                 cnt += 1
         self.set_stone(x, y, empty)
         if cnt >= 2:
-            # print("double three")
             return True
         return False
 
@@ -137,7 +133,6 @@ class Renju_Rule(object):
                 cnt += 1
         self.set_stone(x, y, empty)
         if cnt >= 2:
-            # print("double four")
             return True
         return False
 

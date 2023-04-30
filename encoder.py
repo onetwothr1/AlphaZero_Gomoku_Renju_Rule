@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from board import Point
+from game import Point
 from player import Player
 
 # plane 0: empty points

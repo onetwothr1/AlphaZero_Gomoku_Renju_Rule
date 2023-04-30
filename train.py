@@ -1,5 +1,4 @@
 import argparse
-from IPython.core.interactiveshell import re
 from tqdm import tqdm
 import torch
 import torch.nn as nn
@@ -15,9 +14,7 @@ def train(model, dataset, save_dir, device, num_epochs, lr, lr_decay, batch_size
     policy_criterion = nn.KLDivLoss(reduction='batchmean', log_target=False)
     value_criterion = nn.MSELoss()
     l2_const = 1e-3
-    optimizer = optim.Adam(model.parameters(), lr=lr
-    , weight_decay=l2_const
-    )
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=l2_const)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=lr_decay)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
@@ -47,12 +44,6 @@ def train(model, dataset, save_dir, device, num_epochs, lr, lr_decay, batch_size
 
             policy_loss = policy_criterion(log_policy_pred, mcts_prob)
             value_loss = value_criterion(value_pred.squeeze(), reward)
-            # weight1 = 1 / (1 + torch.exp(-policy_loss*2))
-            # weight2 = 1 / (1 + torch.exp(-value_loss))
-            # total_weight = weight1 + weight2
-            # weight1 = weight1 / total_weight
-            # weight2 = weight2 / total_weight
-            # loss = weight1 * policy_loss + weight2 * value_loss
             loss = policy_loss + value_loss
             loss.backward()
             optimizer.step()

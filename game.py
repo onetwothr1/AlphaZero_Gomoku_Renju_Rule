@@ -43,9 +43,8 @@ class Board():
                     return False
         return True
 
-
 class GameState():
-    def __init__(self, board, next_player, previous, move, turn_cnt):
+    def __init__(self, board, next_player, previous, move, turn_cnt, black_end=False, white_end=False):
         self.board = board
         self.next_player = next_player
         self.previous_state = previous
@@ -55,6 +54,8 @@ class GameState():
         self.winner = None
         self.win_by_forcing_forbidden_move = False
         self.full_board = False
+        self.black_can_not_win_anymore = black_end
+        self.white_can_not_win_anymore = white_end
 
         self.forbidden_moves = self.get_forbidden_moves()
 
@@ -65,22 +66,11 @@ class GameState():
             return self
         next_board = copy.deepcopy(self.board)
         next_board.place_stone(self.next_player, move)
-        return GameState(next_board, self.next_player.other, self, move, self.turn_cnt+1)
-
-    # one-man play. for checking applied rules.
-    def apply_move_test(self, move):
-        next_board = copy.deepcopy(self.board)
-        next_board.place_stone(self.next_player, move)
-        return GameState(next_board, self.next_player, self, move, self.turn_cnt+1)
+        return GameState(next_board, self.next_player.other, self, move, self.turn_cnt+1, self.black_can_not_win_anymore, self.white_can_not_win_anymore)
 
     def new_game(board_size: int):
         board = Board(board_size)
         return GameState(board, Player.black, None, None, 0)
-
-    # for board_test, playing on white
-    def new_game_test(board_size: int):
-        board = Board(board_size)
-        return GameState(board, Player.white, None, None)
 
     def is_empty(self, move):
         return self.board.is_empty(move)
@@ -140,13 +130,19 @@ class GameState():
         return self.previous_state.next_player
 
     def check_draw_situation(self):
+        # Early stop the game if it reaches a state where no one can win anymore.
         board_temp = copy.deepcopy(self.board)
-        for row in board_temp:
-            for c in row:
-                p = Point(row, c)
+        for r in range(board_temp.board_size):
+            for c in range(board_temp.board_size):
+                p = Point(r, c)
                 if board_temp.is_empty(p):
-                    board_temp.place_stone(self.prev_player())
-        return GameState.has_five_in_a_row(board_temp, self.prev_player())
+                    board_temp.place_stone(self.next_player, p)
+        if not GameState.has_five_in_a_row(board_temp.grid, self.next_player):
+            if self.next_player==Player.black:
+                self.black_can_not_win_anymore = True
+            else:
+                self.white_can_not_win_anymore = True
+        return self.black_can_not_win_anymore and self.white_can_not_win_anymore
 
     def has_five_in_a_row(board, stone):
         # Check horizontal sequences

@@ -3,8 +3,10 @@ import numpy as np
 from numpy import average
 import platform
 import subprocess
+import sys
+from IPython.display import clear_output
 
-from board import Point, GameState
+from game import Point
 from player import Player
 
 COLS = 'ABCDEFGHJKLMNOPQRST'
@@ -45,51 +47,55 @@ def print_move(player, move, player_name=None):
     else:
         print('%s: %s' % (player, move_str))
 
-
 def print_board(game_state):
     board_size = game_state.board.board_size
-    # for row in range(board_size-1, -1, -1):
-    #     line = []
-    #     for col in range(board_size):
-    #         if Point(row=row, col=col) in game_state.forbidden_moves:
-    #             line.append('X')
-    #             continue
-    #         stone = game_state.board.get(Point(row=row, col=col))
-    #         if stone==0:
-    #             line.append(' ')
-    #         elif stone==Player.black:
-    #             line.append(StoneIcon.black)
-    #         elif stone==Player.white:
-    #             line.append(StoneIcon.white)
-    #     print(' %d %s' % (row, ' '.join(line)))
-    # print('   ' + ' '.join(COLS[:board_size]))
     for row in range(board_size-1, -1, -1):
         line = []
         for col in range(board_size):
             if Point(row=row, col=col) in game_state.forbidden_moves:
-                line.append('X ')
+                line.append('X')
                 continue
             stone = game_state.board.get(Point(row=row, col=col))
             if stone==0:
-                line.append('  ')
+                line.append(' ')
             elif stone==Player.black:
                 line.append(StoneIcon.black)
             elif stone==Player.white:
                 line.append(StoneIcon.white)
-        print(' %d %s' % (row, ''.join(line)))
+        print(' %d %s' % (row, ' '.join(line)))
     print('   ' + ' '.join(COLS[:board_size]))
+    # for row in range(board_size-1, -1, -1):
+    #     line = []
+    #     for col in range(board_size):
+    #         if Point(row=row, col=col) in game_state.forbidden_moves:
+    #             line.append('X ')
+    #             continue
+    #         stone = game_state.board.get(Point(row=row, col=col))
+    #         if stone==0:
+    #             line.append('  ')
+    #         elif stone==Player.black:
+    #             line.append(StoneIcon.black)
+    #         elif stone==Player.white:
+    #             line.append(StoneIcon.white)
+    #     print(' %d %s' % (row, ''.join(line)))
+    # print('   ' + ' '.join(COLS[:board_size]))
 
-def handle_input(_input, game: GameState, board_size):
-    point = point_from_coords(_input.strip(), board_size)
-    if point is None:
-        return None
-    if not game.is_empty(point):
-        print_not_empty()
-        return None
-    if not game.is_valid_move(point):
-        print_invalid_move()
-        return None
-    return point
+def get_human_move(game, board_size):
+    while True:
+        try:
+            human_input = input("Your move: ")
+            point = point_from_coords(human_input.strip(), board_size)
+            if point is None:
+                raise ValueError
+            if not game.is_empty(point):
+                print_not_empty()
+                raise ValueError
+            if not game.is_valid_move(point):
+                print_fobidden_move()
+                raise ValueError
+            return point
+        except ValueError:
+            pass    
 
 def point_from_coords(coords, board_size):
     try:
@@ -119,18 +125,18 @@ def print_board_is_full():
     print("\nBoard is full. End game.")
 
 def print_no_one_can_win():
-    print("\nThe game has reached a point where no one can win anymore.")
+    print("\nThe game has reached a state where no one can win anymore.")
 
 def print_wrong_input():
-    print("Wrong input. try again")
+    print("Wrong input. Please enter a valid input.")
 
 def print_out_of_board():
-    print("Point is out of board. type a proper point again.")
+    print("Point is out of board. Type a valid point on the board.")
 
 def print_not_empty():
     print('The point is already occupied. try another point.')
 
-def print_invalid_move():
+def print_fobidden_move():
     print("That move is forbidden. try another move.")
 
 def print_tree_depth_statistics(player1, p1_avg_depths, p1_max_depths, player2, p2_avg_depths, p2_max_depths):
@@ -147,10 +153,42 @@ def print_tree_depth_statistics(player1, p1_avg_depths, p1_max_depths, player2, 
 
 def clear_screen():
     # see https://stackoverflow.com/a/23075152/323316
-    if platform.system() == "Windows":
+    if 'ipykernel' in sys.modules:
+        clear_output(wait=True)
+    elif platform.system() == "Windows":
         subprocess.Popen("cls", shell=True).communicate()
     else:  # Linux and Mac
         print(chr(27) + "[2J")
+
+def set_first_player():
+    while True:
+        try:
+            human_turn = int(input("Do you want to go first (1) or second (2)?: "))
+            if human_turn==1:
+                turn = {'human': Player.black}
+            elif human_turn==2:
+                turn = {'human': Player.white}
+            else:
+                raise ValueError
+            player_name = {
+                turn['human']: 'Player',
+                turn['human'].other: 'AI'
+            }
+            print()
+            return turn, player_name
+        except ValueError:
+            print("Invalind input. please enter 1 or 2.")
+
+def get_num_searches():
+    while True:
+        try:
+            n = int(input("Enter the number of search iteration for AI tree traversal (default is 200): "))
+            if n <= 0:
+                print("The number must be a positive integer.")
+            else:
+                return n
+        except ValueError:
+            print("Invalid input. Please enter a valid integer.")
 
 def get_model_name(model_path):
     return model_path.split('/')[-1].split('.')[0]
@@ -181,6 +219,51 @@ def save_graph_img(loss, policy_loss, value_loss, save_path):
     
     plt.legend(loc='upper right')
     plt.savefig(save_path)
+
+def show_board_img(game_state):
+    board = game_state.board
+    board_size = board.board_size
+    fig, ax = plt.subplots(figsize=(6, 6))
+    for y in range(board_size):
+        for x in range(board_size):
+            rect = plt.Rectangle((x, board_size - 1 - y), 1, 1, facecolor='white', edgecolor='black', linewidth=0.3)
+            ax.add_patch(rect)
+            
+            if board.get(Point(x,y))==Player.black:
+                ax.text(y+0.5, board_size-x-0.5, '●', ha='center',va='center', fontsize=25, color='black')
+            elif board.get(Point(x,y))==Player.white:
+                ax.text(y+0.5, board_size-x-0.5, '○', ha='center',va='center', fontsize=25, color='black')
+    for move in game_state.forbidden_moves:
+        ax.text(move.col + 0.5, board_size-move.row - 0.5, 'X', ha='center',va='center', fontsize=25, color='black')
+    
+    ax.set_xticks(range(board_size))
+    ax.set_yticks(range(board_size))
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+
+    ax.xaxis.tick_bottom()
+    ax.yaxis.tick_left()
+    ax.xaxis.set_ticks_position('none')
+    ax.yaxis.set_ticks_position('none')
+
+    ax.set_xlim(-0.5, board_size)
+    ax.set_ylim(0, board_size)
+    ax.set_aspect('equal')
+    plt.gca().invert_yaxis()
+
+    COLS = 'ABCDEFGHJKLMNOPQRST'
+    for i, letter in enumerate(COLS[:board_size]):
+        ax.text(i+0.5,board_size + 0.5, letter,ha='center',va='center')
+    for i in range(board_size):
+        ax.text(-0.5,board_size - 0.5-i,str(i),ha='center',va='center')
+    
+    # Remove outer border line
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    # plt.savefig('animation/%s.png' %game_state.turn_cnt)
+    plt.show()
+    plt.close()
 
 def visualize_policy_distibution(probability_distribution, game_state):
     board = game_state.board

@@ -5,7 +5,7 @@ import time
 from experience import *
 from alphazero_agent import AlphaZeroAgent
 from alphazero_net import AlphaZeroNet
-from board import GameState
+from game import GameState
 from encoder import Encoder
 from player import Player
 from utils import *
