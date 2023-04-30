@@ -18,7 +18,7 @@ References:
 python play.py  
 ```
 
-You can also play on Google Colab [![Opein In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/onetwothr1/GomokuAI/blob/main/path/to/play.ipynb)
+You can also play on Google Colab [![Opein In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/onetwothr1/GomokuAI/blob/main/play.ipynb)
 
 ### Files
 |File|Description|
