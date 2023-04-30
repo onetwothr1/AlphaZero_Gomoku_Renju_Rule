@@ -49,36 +49,41 @@ def print_move(player, move, player_name=None):
 
 def print_board(game_state):
     board_size = game_state.board.board_size
+    
+    # For most enviroment
     for row in range(board_size-1, -1, -1):
         line = []
         for col in range(board_size):
             if Point(row=row, col=col) in game_state.forbidden_moves:
-                line.append('X')
+                line.append('X ')
                 continue
             stone = game_state.board.get(Point(row=row, col=col))
             if stone==0:
-                line.append(' ')
+                line.append('  ')
             elif stone==Player.black:
                 line.append(StoneIcon.black)
             elif stone==Player.white:
                 line.append(StoneIcon.white)
-        print(' %d %s' % (row, ' '.join(line)))
+        print(' %d %s' % (row, ''.join(line)))
     print('   ' + ' '.join(COLS[:board_size]))
+
+    # Use this code in VSCode terminal environment
     # for row in range(board_size-1, -1, -1):
     #     line = []
     #     for col in range(board_size):
     #         if Point(row=row, col=col) in game_state.forbidden_moves:
-    #             line.append('X ')
+    #             line.append('X')
     #             continue
     #         stone = game_state.board.get(Point(row=row, col=col))
     #         if stone==0:
-    #             line.append('  ')
+    #             line.append(' ')
     #         elif stone==Player.black:
     #             line.append(StoneIcon.black)
     #         elif stone==Player.white:
     #             line.append(StoneIcon.white)
-    #     print(' %d %s' % (row, ''.join(line)))
+    #     print(' %d %s' % (row, ' '.join(line)))
     # print('   ' + ' '.join(COLS[:board_size]))
+
 
 def get_human_move(game, board_size):
     while True:
