@@ -10,13 +10,10 @@ References:
 
 ## Example Games Between AIs
 - Each move with 10 MCTS rollouts:
-<br>
 <img src="https://raw.githubusercontent.com/onetwothr1/GomokuAI/main/play_10rollout.gif" width="70%" height="70%">
-<br><br>
+
 - Each move with 200 MCTS rollouts:
-<br>
 <img src="https://raw.githubusercontent.com/onetwothr1/GomokuAI/main/play_200rollout.gif" width="70%" height="70%">
-<br><br>
 
 ## Play
 Run following script from the root directory:
