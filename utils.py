@@ -193,11 +193,11 @@ def get_num_searches():
 def get_model_name(model_path):
     return model_path.split('/')[-1].split('.')[0]
 
-def save_path(model_path, total_num_game, i_th=None, extension='.pickle'):
+def experience_save_path(model_path, total_num_game, i_th=None, extension='.pickle'):
     if i_th:
-        return 'experience/%s self-play %d %d%s' %(get_model_name(model_path), total_num_game, i_th, extension)
+        return 'experiences/%s self-play %d %d%s' %(get_model_name(model_path), total_num_game, i_th, extension)
     else:
-        return 'experience/%s self-play %d%s' %(get_model_name(model_path), total_num_game, extension)
+        return 'experiences/%s self-play %d%s' %(get_model_name(model_path), total_num_game, extension)
 
 def save_graph_img(loss, policy_loss, value_loss, save_path):
     plt.plot(loss, label='loss')

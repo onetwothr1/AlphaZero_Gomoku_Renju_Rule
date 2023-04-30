@@ -104,13 +104,13 @@ def main():
     start = time.time()
     # below code makes while-loop be able to use 'tqdm' progress bar
     for _ in tqdm(self_play_simulation(agent1, agent2, args.num_games, 
-                                       save_path(args.model, args.num_games, args.file_num), 
+                                       experience_save_path(args.model, args.num_games, args.file_num), 
                                        args.board_size, args.verbose), 
                 total=args.num_games): pass
     time_elapsed = time.time() - start
 
     # save self-play experience spec
-    with open(save_path(args.model, args.num_games, args.file_num, '.txt'), 'w') as file:
+    with open(experience_save_path(args.model, args.num_games, args.file_num, '.txt'), 'w') as file:
         file.write("rollout per move %d" %args.num_rollout_per_move)
         file.write("\nc %f" %args.c)
         file.write("\ndirichlet noise intensity %f" %args.noise_intensity)

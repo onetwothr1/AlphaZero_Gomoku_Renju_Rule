@@ -1,0 +1,5 @@
+rollout per move 400
+c 2.500000
+dirichlet noise intensity 0.250000
+dirichlet alpha 0.100000
+time elapsed 36h49m14s
