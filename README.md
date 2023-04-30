@@ -1,6 +1,6 @@
 ## AlphaZero Gomoku with Renju Rule
 
-Implementation of AlphaZero algorithm on Gomoku (also called Omok or Gobang) with Renju rule, which has the rule of forbidden moves to limit black's advantage. I trained a model that plays on 9 * 9 board with 3000 self-play games over 5 days.
+An implementation of the AlphaZero algorithm for Gomoku (also called Omok or Gobang) using Renju rule, which has the rule of forbidden moves to limit black's advantage. I trained a model that plays on 9 * 9 board with 3000 self-play games over 5 days.
 <br><br>
 References:
 - [Deep Learning and the Game of Go](https://github.com/maxpumperla/deep_learning_and_the_game_of_go)
