@@ -43,10 +43,14 @@ You can also play on Google Colab. [![Opein In Colab](https://colab.research.goo
 **Challenges in training:**
 <br>
 
- After 2000 self-play games, the agent showed proficiency in offense but struggled with defense. To address this, I conducted an additional 1000 self-play games and implemented two actions.
+After 2000 self-play games, the agent showed proficiency in offense but struggled with defense. To address this, I conducted an additional 1000 self-play games and implemented three actions.
 
 1. Encouraging Defensive Moves: If the agent identified a move leading to the opponent's victory, it was prompted to try that move more, facilitating understanding of defensive strategies.
 
-2. Adjusting Move Selection Probability: I recorded predicted losses for each move and subtracted this value from the corresponding move's total visit count. This adjustment emphasized proper defensive moves during training while reducing the probabilities of less effective moves.
+2. Adjusting Move Selection Probability: During the tree search process, I recorded the number of predicted losses for each move. Then subtracted this value from the corresponding move's total visit count when saving the probability distribution of possible moves. This adjustment emphasized proper defensive moves during training while reducing the probabilities of less effective moves.
 
-Although these actions significantly improved the agent's defense, occasionally, an imbalance between offense and defense occurred. To solve this, I extended the first action also to winning scenarios. These modifications quicky improved the agent's offensive-defensive balance without extensive self-play games and training times.
+3. Extending Search for Low Confidence Moves: After Monte Carlo Tree Searching, if the confidence of the selected best move was lower than a threshold, additional searching was performed.
+
+Although these actions significantly improved the agent's defense, there were cases where the agent focused more on defense than offense. To solve this, I extended the first action also to winning scenarios. These modifications quickly improved the agent's offensive-defensive balance without a large number of self-play games and extensive training time.
+
+You can find the specific algorithm in the select_move() method within the alphazero_agent.py file.
