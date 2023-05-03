@@ -53,4 +53,4 @@ After 2000 self-play games, the agent showed proficiency in offense but struggle
 
 Although these actions significantly improved the agent's defense, there were cases where the agent focused more on defense than offense. To solve this, I extended the first action also to winning scenarios. These modifications quickly improved the agent's offensive-defensive balance without a large number of self-play games and extensive training time.
 
-You can find the specific algorithm in the select_move() method within the alphazero_agent.py file.
+You can find the detailed algorithm in the select_move() method within the alphazero_agent.py file.
