@@ -21,7 +21,7 @@ Run following script from the root directory:
 python play.py  
 ```
 
-You can also play on Google Colab. [![Opein In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/onetwothr1/GomokuAI/blob/main/play.ipynb)
+You can also play this game with AI on Google Colab. [![Opein In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/onetwothr1/GomokuAI/blob/main/play.ipynb)
 <br><br>
 ## Files
 |File|Description|
@@ -40,17 +40,15 @@ You can also play on Google Colab. [![Opein In Colab](https://colab.research.goo
 |play.py|Runs a game between human and AI.|
 
 <br><br>
-**Challenges in training:**
-<br>
-
+## Challenges in Training
 After 2000 self-play games, the agent showed proficiency in offense but struggled with defense. To address this, I conducted an additional 1000 self-play games and implemented three actions.
 
-1. Encouraging Defensive Moves: If the agent identified a move leading to the opponent's victory, it was prompted to try that move more, facilitating understanding of defensive strategies.
+1. **Encouraging Defensive Moves**: If the agent identified a move leading to the opponent's victory, it was prompted to try that move more, facilitating understanding of defensive strategies.
 
-2. Adjusting Move Selection Probability: During the tree search process, I recorded the number of predicted losses for each move. Then subtracted this value from the corresponding move's total visit count when saving the probability distribution of possible moves. This adjustment emphasized proper defensive moves during training while reducing the probabilities of less effective moves.
+2. **Adjusting Move Selection Probability**: During the tree search process, I recorded the number of predicted losses for each move. Then subtracted this value from the corresponding move's total visit count when saving the probability distribution of possible moves. This adjustment emphasized proper defensive moves during training while reducing the probabilities of less effective moves.
 
-3. Extending Search for Low Confidence Moves: After Monte Carlo Tree Searching, if the confidence of the selected best move was lower than a threshold, additional searching was performed.
+3. **Extending Search for Low Confidence Moves**: After Monte Carlo Tree Searching, if the confidence of the selected best move was lower than a threshold, additional searching was performed.
 
 Although these actions significantly improved the agent's defense, there were cases where the agent focused more on defense than offense. To solve this, I extended the first action also to winning scenarios. These modifications quickly improved the agent's offensive-defensive balance without a large number of self-play games and extensive training time.
 
-You can find the detailed algorithm in the select_move() method within the alphazero_agent.py file.
+You can find the detailed algorithm in the `select_move()` method within the `alphazero_agent.py` file.
